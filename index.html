@@ -144,8 +144,18 @@ button.on{border-color:var(--ac);color:var(--ac)}
 #its button{border-radius:10px;background:linear-gradient(#27344e,#10161f);border:2px solid #4a5f82;box-shadow:0 2px 6px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.15)}
 #its button:hover{border-color:#ffd23f}
 #hb{filter:drop-shadow(0 -6px 14px rgba(0,0,0,.35))}
+
+/* Ping indicator: accurate WebSocket round-trip time to the game server. */
+#top .ping-indicator{position:relative;z-index:7;display:inline-flex;align-items:center;gap:6px;flex:none;white-space:nowrap;padding:5px 9px;border:1px solid #52616f;border-radius:9px;background:#151e2bcc;color:#e8eef5;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;text-shadow:0 1px 2px #000;box-shadow:0 2px 7px #0004}
+#top .ping-indicator span{display:inline;gap:0}
+.ping-dot{display:inline-block;flex:none;width:7px;height:7px;border-radius:50%;background:#7e8b99;box-shadow:0 0 5px #7e8b9944}
+.ping-indicator.good .ping-dot{background:#55db8d;box-shadow:0 0 7px #55db8d88}
+.ping-indicator.warn .ping-dot{background:#ffd15b;box-shadow:0 0 7px #ffd15b88}
+.ping-indicator.bad .ping-dot{background:#ff7070;box-shadow:0 0 7px #ff707088}
+.ping-indicator.pending .ping-dot{background:#89b9ff;box-shadow:0 0 7px #89b9ff77}
+@media(max-width:700px){#top{flex-wrap:wrap}#top .ping-indicator{padding:4px 6px;font-size:11px}}
 </style></head><body>
-<div id="top"><b id="tm">0:00</b><b id="cry" title="Кристаллы · B — магазин">💎 0</b><span id="rk"></span><span><button id="zo">−</button><button id="zi">＋</button><button id="lk" class="on" title="Камера на герое (Пробел)">🎯</button><button id="mu" title="Звук">🔊</button><button id="pm" title="Меню (Esc)">☰</button><button id="shp" title="Магазин (B)">🛒</button><button id="sbb" title="Игроки (Tab)">👥</button></span><span><button data-s="1" class="on">×1</button><button data-s="3">×3</button><button data-s="8">×8</button></span></div>
+<div id="top"><b id="tm">0:00</b><b id="cry" title="Кристаллы · B — магазин">💎 0</b><div id="netPing" class="ping-indicator offline" title="Нет соединения с игровым сервером" role="status" aria-live="off"><i class="ping-dot"></i><span id="pingValue">Пинг: —</span></div><span id="rk"></span><span><button id="zo">−</button><button id="zi">＋</button><button id="lk" class="on" title="Камера на герое (Пробел)">🎯</button><button id="mu" title="Звук">🔊</button><button id="pm" title="Меню (Esc)">☰</button><button id="shp" title="Магазин (B)">🛒</button><button id="sbb" title="Игроки (Tab)">👥</button></span><span><button data-s="1" class="on">×1</button><button data-s="3">×3</button><button data-s="8">×8</button></span></div>
 <div id="stage"><canvas id="c"></canvas><div id="inf"></div><div id="toast"></div><div id="tip" hidden></div><div id="sb" hidden></div><div id="kf"></div><div id="shop" hidden></div><div id="its"><button id="i0"></button><button id="i1"></button><button id="i2"></button></div>
 <div id="hb"><canvas id="mm" width="160" height="160"></canvas><div id="bars"><div class="pbox"><div id="hpic"></div><b id="lvb">1</b></div><div class="bcol"><div class="bar hpb" id="hpw"><i id="hpl"></i><i id="hp" class="f h"></i><i id="shd"></i><span id="hpt"></span></div><div class="bar xpb" id="xpw"><i id="xp"></i><span id="xpt"></span></div></div></div><div class="sk"><button id="q" data-k="Q"></button><button id="e" data-k="E"></button><button id="r" data-k="R"></button><div id="ps"></div></div></div></div>
 <canvas id="mbg"></canvas>
@@ -1026,15 +1036,35 @@ function guestTick(rd){const a=Math.min(1,rd*12);for(const u of U)if(u.tx!=null)
  if(win<0&&performance.now()-lastSnapAt>8000){ov('lost')}}
 // Сеть: обычный WebSocket через собственный Node.js сервер; без внешних платформ.
 let NET=null,netReady=false,netRetry=null,netPeer=null,netMsgId=0;
+// Ping = round-trip time (RTT) of an actual WebSocket message to/from this server.
+// One outstanding measurement at a time, so replies cannot be attributed to the wrong request.
+let pingTimer=null,pingSentAt=null;
+function showPing(state,label,info){const el=$('netPing');if(!el)return;el.className='ping-indicator '+state;el.title=info;$('pingValue').textContent=label}
+function probePing(){
+ if(!netReady){showPing('offline','Пинг: —','Нет соединения с игровым сервером');return}
+ if(pingSentAt!==null){
+  if(performance.now()-pingSentAt>9000)showPing('bad','Пинг: >9 с','Сервер больше 9 секунд не отвечает на проверку');
+  return;
+ }
+ if(netSend({type:'ping'})){pingSentAt=performance.now();}
+}
+function pongPing(){
+ if(pingSentAt===null)return;
+ const ms=Math.max(0,Math.round(performance.now()-pingSentAt));pingSentAt=null;
+ showPing(ms<100?'good':ms<200?'warn':'bad','Пинг: '+ms+' мс','Задержка до игрового сервера (туда и обратно): '+ms+' мс. Это не FPS и не задержка до соперника.');
+}
+function beginPing(){clearInterval(pingTimer);pingTimer=null;pingSentAt=null;showPing('pending','Пинг: …','Измеряем соединение с игровым сервером');probePing();pingTimer=setInterval(probePing,3000)}
+function endPing(){clearInterval(pingTimer);pingTimer=null;pingSentAt=null;showPing('offline','Пинг: —','Нет соединения с игровым сервером')}
+
 const inviteFromUrl=(new URLSearchParams(location.search)).get('room')||'';
 const ONLINE_URL=(location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws';
 function netSend(v){if(NET&&NET.readyState===WebSocket.OPEN){NET.send(JSON.stringify(v));return true}return false}
 function netConnect(){if(NET&&(NET.readyState===WebSocket.OPEN||NET.readyState===WebSocket.CONNECTING))return;
  if(location.protocol==='file:'){boardErr='Для онлайн-игры откройте адрес игрового сервера, не файл HTML';return}
  NET=new WebSocket(ONLINE_URL);
- NET.onopen=()=>{netReady=true;boardErr='';clearTimeout(netRetry);netSend({type:'hello',id:devId,nick:PROF.nick||'',mmr:PROF.mmr});pushBoard();loadBoard();if(ovMode==='search'&&MM&&MM.st==='err')ov('search')};
+ NET.onopen=()=>{netReady=true;boardErr='';clearTimeout(netRetry);netSend({type:'hello',id:devId,nick:PROF.nick||'',mmr:PROF.mmr});beginPing();pushBoard();loadBoard();if(ovMode==='search'&&MM&&MM.st==='err')ov('search')};
  NET.onmessage=e=>{try{onNetMessage(JSON.parse(e.data))}catch(err){console.warn('Сетевое сообщение',err)}};
- NET.onclose=()=>{netReady=false;netPeer=null;NR=null;if(MM){if(MM.st==='play'||MM.st==='join'||MM.st==='draft'||MM.drafting||ROLE!=='s'){if(ROLE==='g'||ROLE==='h'||DR) { if(DR){clearInterval(DR.tm);DR=null}run=false;ov('lost')} }else {MM={st:'err',msg:'Соединение с сервером потеряно'};ov('search')}}
+ NET.onclose=()=>{netReady=false;endPing();netPeer=null;NR=null;if(MM){if(MM.st==='play'||MM.st==='join'||MM.st==='draft'||MM.drafting||ROLE!=='s'){if(ROLE==='g'||ROLE==='h'||DR) { if(DR){clearInterval(DR.tm);DR=null}run=false;ov('lost')} }else {MM={st:'err',msg:'Соединение с сервером потеряно'};ov('search')}}
    if(!netRetry)netRetry=setTimeout(()=>{netRetry=null;netConnect()},2500)};
  NET.onerror=()=>{};
 }
@@ -1046,7 +1076,7 @@ function roomAdapter(){const listeners={};return{
  receive:(name,data)=>{for(const fn of (listeners[name]||[]))fn({isMe:false,data})},
  leave:()=>{netSend({type:'leave'});netPeer=null}
 }}
-function onNetMessage(d){if(d.type==='hello'){netReady=true;return}
+function onNetMessage(d){if(d.type==='pong'){pongPing();return}if(d.type==='hello'){netReady=true;return}
  if(d.type==='board'){BOARD=Array.isArray(d.rows)?d.rows:[];boardErr='';if(ovMode==='board')ov('board');return}
  if(d.type==='waiting'){if(MM){MM.st='invite';MM.code=d.code;MM.t0=Date.now();ov('search')}return}
  if(d.type==='queued'){if(MM){MM.st='search';ov('search')}return}

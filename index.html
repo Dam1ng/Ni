@@ -157,7 +157,7 @@ button.on{border-color:var(--ac);color:var(--ac)}
 .ping-indicator.pending .ping-dot{background:#89b9ff;box-shadow:0 0 7px #89b9ff77}
 @media(max-width:700px){#top{flex-wrap:wrap}#top .ping-indicator{padding:4px 6px;font-size:11px}}
 </style></head><body>
-<div id="top"><b id="tm">0:00</b><b id="cry" title="Кристаллы · B — магазин">💎 0</b><div id="netPing" class="ping-indicator offline" title="Нет соединения с игровым сервером" role="status" aria-live="off"><i class="ping-dot"></i><span id="pingValue">Пинг: —</span></div><span class="net-fps" id="netFps" title="Частота кадров и частота получения сетевых обновлений">FPS: — · Сеть: —</span><span id="rk"></span><span><button id="zo">−</button><button id="zi">＋</button><button id="lk" class="on" title="Камера на герое (Пробел)">🎯</button><button id="mu" title="Звук">🔊</button><button id="pm" title="Меню (Esc)">☰</button><button id="shp" title="Магазин (B)">🛒</button><button id="sbb" title="Игроки (Tab)">👥</button></span><span><button data-s="1" class="on">×1</button><button data-s="3">×3</button><button data-s="8">×8</button></span></div>
+<div id="top"><b id="tm">0:00</b><b id="cry" title="Кристаллы · B — магазин">💎 0</b><div id="netPing" class="ping-indicator offline" title="Нет соединения с игровым сервером" role="status" aria-live="off"><i class="ping-dot"></i><span id="pingValue">Пинг: —</span></div><span id="clientVersion" title="Версия игрового клиента" style="font-size:11px;opacity:.75;white-space:nowrap">v1.0.4</span><span class="net-fps" id="netFps" title="Частота кадров и частота получения сетевых обновлений">FPS: — · Сеть: —</span><span id="rk"></span><span><button id="zo">−</button><button id="zi">＋</button><button id="lk" class="on" title="Камера на герое (Пробел)">🎯</button><button id="mu" title="Звук">🔊</button><button id="pm" title="Меню (Esc)">☰</button><button id="shp" title="Магазин (B)">🛒</button><button id="sbb" title="Игроки (Tab)">👥</button></span><span><button data-s="1" class="on">×1</button><button data-s="3">×3</button><button data-s="8">×8</button></span></div>
 <div id="stage"><canvas id="c"></canvas><div id="inf"></div><div id="toast"></div><div id="tip" hidden></div><div id="sb" hidden></div><div id="kf"></div><div id="shop" hidden></div><div id="its"><button id="i0"></button><button id="i1"></button><button id="i2"></button></div>
 <div id="hb"><canvas id="mm" width="160" height="160"></canvas><div id="bars"><div class="pbox"><div id="hpic"></div><b id="lvb">1</b></div><div class="bcol"><div class="bar hpb" id="hpw"><i id="hpl"></i><i id="hp" class="f h"></i><i id="shd"></i><span id="hpt"></span></div><div class="bar xpb" id="xpw"><i id="xp"></i><span id="xpt"></span></div></div></div><div class="sk"><button id="q" data-k="Q"></button><button id="e" data-k="E"></button><button id="r" data-k="R"></button><div id="ps"></div></div></div></div>
 <canvas id="mbg"></canvas>
@@ -932,7 +932,7 @@ function drawHero(u){const H=HER[u.h],x=u.x,y=u.y,r=u.r,fa=u.fa==null?(u.team?2.
  if(u.noUI)return;g.fillStyle='#0c1118';g.strokeStyle=c;g.lineWidth=2.5;g.beginPath();g.arc(x+r*.85,y+r*.9,r*.52,0,7);g.fill();g.stroke();g.fillStyle='#fff';g.font='bold 13px system-ui';g.fillText(u.lvl,x+r*.85,y+r*.92);g.font='bold 18px system-ui';
  bar(x,y-r-16,44,u.hp/u.mhp,c)}
 const FC=100,FN=Math.ceil(W/FC),FG=[new Uint8Array(FN*FN),new Uint8Array(FN*FN)],FREEFOG={tower:1,bosskill:1,mega:1};let VS=[[],[]],fogT=0;
-function updFog(){for(let tm=0;tm<2;tm++){const g2=FG[tm];g2.fill(0);const src=[];for(const u of U){const rv=u.team!=tm&&u.rvt>T&&u.rvm==tm;if(u.dead||u.hid||(u.team!=tm&&!rv))continue;const r=rv?320:u.k=='hero'?750:u.k=='creep'?(u.mega?500:420):u.k=='tower'?650:u.k=='throne'?700:0;if(!r)continue;src.push([u.x,u.y,r]);const cx=(u.x/FC)|0,cy=(u.y/FC)|0,n=Math.ceil(r/FC);for(let ix=cx-n;ix<=cx+n;ix++){if(ix<0||ix>=FN)continue;for(let iy=cy-n;iy<=cy+n;iy++){if(iy<0||iy>=FN)continue;const dx=(ix+.5)*FC-u.x,dy=(iy+.5)*FC-u.y;if(dx*dx+dy*dy<=r*r)g2[iy*FN+ix]=1}}}VS[tm]=src}}
+function updFog(){for(let tm=ROLE=='g'?1:0;tm<(ROLE=='g'?2:2);tm++){const g2=FG[tm];g2.fill(0);const src=[];for(const u of U){const rv=u.team!=tm&&u.rvt>T&&u.rvm==tm;if(u.dead||u.hid||(u.team!=tm&&!rv))continue;const r=rv?320:u.k=='hero'?750:u.k=='creep'?(u.mega?500:420):u.k=='tower'?650:u.k=='throne'?700:0;if(!r)continue;src.push([u.x,u.y,r]);const cx=(u.x/FC)|0,cy=(u.y/FC)|0,n=Math.ceil(r/FC);for(let ix=cx-n;ix<=cx+n;ix++){if(ix<0||ix>=FN)continue;for(let iy=cy-n;iy<=cy+n;iy++){if(iy<0||iy>=FN)continue;const dx=(ix+.5)*FC-u.x,dy=(iy+.5)*FC-u.y;if(dx*dx+dy*dy<=r*r)g2[iy*FN+ix]=1}}}VS[tm]=src}}
 const seen=(tm,x,y)=>{const ix=(x/FC)|0,iy=(y/FC)|0;return ix>=0&&iy>=0&&ix<FN&&iy<FN&&FG[tm][iy*FN+ix]==1};
 const fcv=document.createElement('canvas'),fg=fcv.getContext('2d'),fmc=document.createElement('canvas'),fm=fmc.getContext('2d');fmc.width=fmc.height=160;
 function fogOverlay(){const w=cv.width,h=cv.height;if(fcv.width!=w||fcv.height!=h){fcv.width=w;fcv.height=h}
@@ -962,6 +962,8 @@ function snd(n,x,y,v,nf){if(ROLE=='h'&&!nf&&!NOFWD[n])evq(2,['s',n,x==null?null:
 addEventListener('pointerdown',audioInit);
 
 let ROLE='s',VT=0,MP=null,RM=null,NR=null,EVQ=[],evSeq=0,lastEvG=0,snapQ=0,sendT=0,MM=null,GQ=0,lastSnapAt=0,gHb=0,guestAck=0,gSeen=0,peerT=0,gFirst=0;
+// Dire's local visual prediction never replaces host-authoritative combat.
+let localMove=null,guestProbe=0,hostRtt=0,hostProbeAt=0,snapGap=0,prevSnapTs=0;
 const UM=new Map(),hNeed=new Set(),needs=new Set(),CB={q:0,ids:new Set(),cnt:0,n:0},NOFWD={pop:1,hit:1,hitr:1};
 const fmtMsg=m=>String(m).replace('§H',ROLE=='g'?((MP&&MP.hn)||'Соперник'):'Вы').replace('§G',ROLE=='g'?'Вы':((MP&&MP.gn)||'Соперник'));
 const who=u=>u.pl?'§H':u.rm?'§G':HER[u.h].n+' ('+TN[u.team]+')';
@@ -1010,7 +1012,7 @@ function setPos(u,x,y){
  }
  u.tx=x;u.ty=y;u.netAt=now;
 }
-function onSnap(msg){if(ROLE!='g'||msg.isMe||!msg.data)return;const d=msg.data;if(d.q<=GQ)return;GQ=d.q;lastSnapAt=performance.now();
+function onSnap(msg){if(ROLE!='g'||msg.isMe||!msg.data)return;const d=msg.data;if(d.q<=GQ)return;GQ=d.q;const arrived=performance.now();if(prevSnapTs) snapGap+=(Math.max(0,Math.min(900,arrived-prevSnapTs))-snapGap)*.18;prevSnapTs=arrived;lastSnapAt=arrived;
  netFrames++;if(d.s)for(const a of d.s)mkStatic(a);
  if(Math.abs(T-d.T)>1)T=d.T;else T+=(d.T-T)*.2;const g=d.g;kills=[g[0],g[1]];nextRune=g[2];neuAt=g[3]<0?1e9:g[3];futAt=g[4]<0?1e9:g[4];neuN=g[5];neu={dead:!(g[7]&1)};fut={dead:!(g[7]&2)};
  runeOn=d.r?{x:d.r[0],y:d.r[1]}:null;arunes=d.a.map(a=>({x:a[0],y:a[1],t:a[2]?'hp':'dmg',a:a[3]}));mega=d.m.map(t=>[...t].map(Number));if(d.sx)for(const a of d.sx){const u=UM.get(a[0]);if(u){u.kc=a[1];u.dc=a[2];u.ac=a[3];u.sDH=a[4];u.sDT=a[5];u.sHL=a[6];u.sCK=a[7];u.sTW=a[8];u.sXP=a[9];u.sTK=a[10];u.sDD=a[11];u.cry=a[12]|0;u.itm=[a[13]|0,a[14]|0,a[15]|0]}}
@@ -1022,6 +1024,7 @@ function onSnap(msg){if(ROLE!='g'||msg.isMe||!msg.data)return;const d=msg.data;i
  U=U.filter(u=>!u.gone);
  if(d.c)onCrea({isMe:false,data:{q:d.q,i:0,n:1,l:d.c}});
  if(d.e)for(const e of d.e){if(e[0]<=lastEvG)continue;lastEvG=e[0];applyEv(e)}
+ if(P&&(P.dead||P.st>0||P.pU>T))localMove=null;
  if(!gFirst&&P&&!P.hid){gFirst=1;cam.x=P.x;cam.y=P.y}
  if(g[6]>=0&&win<0){win=g[6];ov(2)}}
 function onCrea(msg){if(ROLE!='g'||msg.isMe||!msg.data)return;const d=msg.data;if(d.q<CB.q)return;if(d.q>CB.q){CB.q=d.q;CB.ids=new Set();CB.cnt=0;CB.n=d.n}
@@ -1034,12 +1037,13 @@ function applyEv(e){const t=e[2];if(t=='s')snd(e[3],e[4],e[5],e[6],1);else if(t=
  else if(t=='p'){const o=UM.get(e[3]);if(o)o.pU=T+e[4]}
  else if(t=='l'){const a=UM.get(e[3]),b=e[4]?UM.get(e[4]):{x:e[5],y:e[6]};if(a&&b)fx.push({a,b,t:e[7]})}}
 function onExt(msg){if(ROLE!='g'||msg.isMe||!msg.data)return;const d=msg.data;for(const a of d.s||[])mkStatic(a);for(const e of d.e||[]){if(e[0]<=lastEvG)continue;lastEvG=e[0];applyEv(e)}}
-function onCmd(msg){if(ROLE!='h'||msg.isMe||!msg.data||!RM)return;const d=msg.data;gSeen=Date.now();if(d.k=='k'){guestAck=d.e|0;if(Array.isArray(d.n))for(const id of d.n.slice(0,40))hNeed.add(id);return}
+function onCmd(msg){if(ROLE!='h'||msg.isMe||!msg.data||!RM)return;const d=msg.data;gSeen=Date.now();if(d.k=='q'){if(Number.isFinite(d.v))em('ctl',{t:'qr',v:d.v});return}if(d.k=='k'){guestAck=d.e|0;if(Array.isArray(d.n))for(const id of d.n.slice(0,40))hNeed.add(id);return}
  if(d.k=='b'){const e=buyItem(RM,d.i|0);return}if(d.k=='x'){sellItem(RM,d.s|0);return}
  if(!RM.rm||RM.dead)return;if(d.k=='m'){const x=+d.x,y=+d.y;if(isFinite(x)&&isFinite(y)){RM.tgt=null;RM.mv=[Math.max(0,Math.min(W,x)),Math.max(0,Math.min(W,y))]}}
  else if(d.k=='a'){const t=U.find(o=>o.id==d.id);if(t&&!t.dead&&t.team!=RM.team&&canHit(t)&&seen(1,t.x,t.y)){RM.tgt=t;RM.mv=null}}
  else if(d.k=='c'){const i=d.i|0;if(i>=0&&i<3)cast(RM,i)}}
 function onCtl(msg){const d=msg.data;if(!d||msg.isMe)return;
+ if(d.t=='qr'&&ROLE=='g'){if(d.v===hostProbeAt){hostRtt=Math.round(performance.now()-d.v);hostProbeAt=0}return}
  if(d.t=='start'){if(ROLE=='g'){em('ctl',{t:'ack'});return}if(ROLE=='s'&&MM&&MM.role=='g')guestStart(d)}
  else if(d.t=='ack'&&MM&&ROLE=='h'){MM.acked=1}
  else if(d.t=='bye'&&ROLE!='s'&&win<0){win=VT;ov(2)}
@@ -1047,24 +1051,40 @@ function onCtl(msg){const d=msg.data;if(!d||msg.isMe)return;
  else if(d.t=='dr'&&MM&&MM.role=='g'&&ROLE=='s')drRecv(d)
  else if(d.t=='da'&&MM&&MM.role=='h'&&DR&&DR.st<12){const a=DSEQ[DR.st];if(a[1]==1&&drHuman(DR.st)){if(a[0]=='p')GSK=skValid(d.h|0,d.sk|0);drApply(d.h|0)}}}
 function guestStart(d){ROLE='g';VT=1;MP={hn:d.hn,gn:d.gn};ended=false;gFirst=0;OPPR=(MM&&MM.m&&MM.m.hm)||PROF.mmr;audioInit();$('ov').hidden=true;ovMode='game';cache={};
- KL.length=0;KF.length=0;U=[];UM.clear();fx=[];guestFogAt=0;guestMiniAt=0;toast=[];EVQ=[];lastEvG=0;GQ=0;CB.q=0;CAMPS=mkCamps();FT=[];ZN=[];shopSig='';$('shop').hidden=true;win=-1;T=0;kills=[0,0];runeOn=null;arunes=[];mega=[[],[]];neu={dead:true};fut={dead:true};spd=1;
+ KL.length=0;KF.length=0;U=[];UM.clear();fx=[];guestFogAt=0;guestMiniAt=0;localMove=null;guestProbe=0;hostRtt=0;hostProbeAt=0;snapGap=0;prevSnapTs=0;toast=[];EVQ=[];lastEvG=0;GQ=0;CB.q=0;CAMPS=mkCamps();FT=[];ZN=[];shopSig='';$('shop').hidden=true;win=-1;T=0;kills=[0,0];runeOn=null;arunes=[];mega=[[],[]];neu={dead:true};fut={dead:true};spd=1;
  if(DR){clearInterval(DR.tm);DR=null}ROSTER=d.ro||ROSTER;for(const a of d.s){mkStatic(a[0]);const u=UM.get(a[0][1]);if(u){u.x=u.tx=a[1];u.y=u.ty=a[2];u.hid=false}}P=UM.get(d.gid)||null;if(P)P.c=[0,0,0];run=true;PROF.last=MM.m.gh;saveProf();$('rk').innerHTML=rankMedal(22)+'<span>'+esc(PROF.nick||'')+' · '+rankName()+'</span>';if(MM)MM.st='play';lastSnapAt=performance.now();em('ctl',{t:'ack'})}
 function startHostMatch(pk){const m=MM.m;ROLE='h';VT=0;MP={hn:m.hn,gn:m.gn};PROF.last=m.hh;saveProf();ended=false;audioInit();$('ov').hidden=true;ovMode='game';cache={};spd=1;OPPR=m.gm||PROF.mmr;init(pk[0][0],pk[1][0],pk);DIFF=avgBot();run=true;say('Боты: '+diffLabel());document.querySelectorAll('[data-s]').forEach(x=>x.classList.toggle('on',x.dataset.s==='1'));sendT=0;guestAck=0;evSeq=0;EVQ=[];gSeen=Date.now();MM.st='play';MM.started=1;$('rk').innerHTML=rankMedal(22)+'<span>'+esc(PROF.nick||'')+' · '+rankName()+'</span>';sendStart()}
 function sendStart(){if(!NR||!RM)return;em('ctl',{t:'start',gid:RM.id,hn:MP.hn,gn:MP.gn,ro:ROSTER,s:U.filter(u=>u.k=='hero'||u.k=='tower'||u.k=='throne').map(u=>[stat(u),Math.round(u.x),Math.round(u.y)])})}
 function netTick(rd){if(ROLE=='h'&&NR){sendT-=rd;if(sendT<=0){sendT=Math.max(0,sendT)+1/12;sendSnap()}hostWatch(rd)}else if(ROLE=='g'){guestTick(rd)}}
 function hostWatch(rd){peerT-=rd;if(peerT>0)return;peerT=1;if(MM&&!MM.acked&&MM.started&&Date.now()-MM.joinT<60000)sendStart();if(!RM||!RM.rm)return;const g=NR.peers().some(p=>!p.isMe&&p.presence&&p.presence.role=='g');if(g)gSeen=Date.now();else if(Date.now()-gSeen>9000){RM.rm=false;say('Соперник отключился — его героем управляет бот')}}
 function guestTick(rd){
- const now=performance.now(),a=1-Math.exp(-Math.max(0,rd)*20);
+ const now=performance.now(),dt=Math.max(0,rd),a=1-Math.exp(-dt*20);
  for(const u of U)if(u.tx!=null){
-  // Short bounded extrapolation while waiting for the next host snapshot.
-  // Stops/teleports get corrected by the authoritative host immediately.
+  // Interpolate other units using their last known network velocity.
   const age=Math.max(0,(now-(u.netAt||now))/1000);
-  const lead=Math.min(.105,Math.max(0,age-.012))*.75;
+  const lead=Math.min(.22,Math.max(0,age-.012))*.82;
   const aimX=Math.max(0,Math.min(W,u.tx+(u.nvx||0)*lead));
   const aimY=Math.max(0,Math.min(W,u.ty+(u.nvy||0)*lead));
-  if(Math.hypot(u.x-aimX,u.y-aimY)>260){u.x=aimX;u.y=aimY}
-  else{u.x+=(aimX-u.x)*a;u.y+=(aimY-u.y)*a}
+  if(u===P&&localMove&&!u.dead&&!u.st){
+   const speed=(HER[u.h]?.sp||230)*(u.hs>0?1.3:1)*(u.sl>0?.5:1);
+   // Start walking locally on click; do not wait for a round trip through Render + Radiant.
+   const done=mvTo(u,localMove.x,localMove.y,speed*dt);
+   if(done)localMove=null;
+   // Host reconciliation only on meaningful drift. Network delay alone must not cause rubberbanding.
+   // Estimate host's current world position from its last velocity and snapshot age.
+   const drift=Math.hypot(u.x-aimX,u.y-aimY);
+   const allowed=Math.max(65,speed*(Math.min(650,hostRtt||200)/1000+.16));
+   if(drift>allowed){
+    const k=Math.min(.16,dt*1.9);
+    u.x+=(aimX-u.x)*k;u.y+=(aimY-u.y)*k;
+   }
+  }else{
+   if(Math.hypot(u.x-aimX,u.y-aimY)>260){u.x=aimX;u.y=aimY}
+   else{u.x+=(aimX-u.x)*a;u.y+=(aimY-u.y)*a}
+  }
  }
+ guestProbe-=dt;
+ if(guestProbe<=0){guestProbe=2.5;const v=performance.now();hostProbeAt=v;cmd({k:'q',v})}
  T+=rd;for(const t of toast)t.t-=rd;toast=toast.filter(t=>t.t>0);for(const f of fx)f.t-=rd;fx=fx.filter(f=>f.t>0);
  gHb-=rd;if(gHb<=0){gHb=.4;cmd({k:'k',e:lastEvG,n:needs.size?[...needs].slice(0,40):0});needs.clear()}
  if(win<0&&performance.now()-lastSnapAt>8000){ov('lost')}}
@@ -1551,11 +1571,11 @@ function start(i,pk){if(MM)cancelSearch(1);if(!pk)mkRoster(false);ROLE='s';VT=0;
 cv.addEventListener('contextmenu',e=>e.preventDefault());mm.addEventListener('contextmenu',e=>e.preventDefault());
 cv.addEventListener('pointerdown',e=>{if(!run||!P||P.dead)return;const r=cv.getBoundingClientRect(),x=cam.x+(e.clientX-r.left-cw/2)/z,y=cam.y+(e.clientY-r.top-ch/2)/z,tol=Math.max(14,18/z);
  let b=null,bd=1e9;for(const t of U){if(t.dead||t.team==P.team||!canHit(t)||!seen(VT,t.x,t.y))continue;const d=Math.hypot(t.x-x,t.y-y);if(d<t.r+tol&&d<bd){bd=d;b=t}}
- if(ROLE=='g'){cmd(b?{k:'a',id:b.id}:{k:'m',x:Math.round(Math.max(0,Math.min(W,x))),y:Math.round(Math.max(0,Math.min(W,y)))});return}
+ if(ROLE=='g'){if(b){localMove=null;cmd({k:'a',id:b.id})}else{const gx=Math.round(Math.max(0,Math.min(W,x))),gy=Math.round(Math.max(0,Math.min(W,y)));localMove={x:gx,y:gy};cmd({k:'m',x:gx,y:gy})}return}
  if(b){P.tgt=b;P.mv=null}else{P.tgt=null;P.mv=[Math.max(0,Math.min(W,x)),Math.max(0,Math.min(W,y))]}});
 cv.addEventListener('wheel',e=>{e.preventDefault();zf=Math.max(.3,Math.min(2.5,zf*(e.deltaY<0?1.1:.9)))},{passive:false});
 const mmPos=e=>{const r=mm.getBoundingClientRect();return[(e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*W]};
-mm.addEventListener('pointerdown',e=>{e.preventDefault();mm.setPointerCapture(e.pointerId);const p=mmPos(e);if(e.button==2&&P&&!P.dead){if(ROLE=='g')cmd({k:'m',x:Math.round(p[0]),y:Math.round(p[1])});else{P.tgt=null;P.mv=p}}else{cam.x=p[0];cam.y=p[1];free=true}});
+mm.addEventListener('pointerdown',e=>{e.preventDefault();mm.setPointerCapture(e.pointerId);const p=mmPos(e);if(e.button==2&&P&&!P.dead){if(ROLE=='g'){const gx=Math.round(p[0]),gy=Math.round(p[1]);localMove={x:gx,y:gy};cmd({k:'m',x:gx,y:gy})}else{P.tgt=null;P.mv=p}}else{cam.x=p[0];cam.y=p[1];free=true}});
 mm.addEventListener('pointermove',e=>{if(e.buttons==1){const p=mmPos(e);cam.x=p[0];cam.y=p[1];free=true}});
 $('zi').onclick=()=>zf=Math.min(2.5,zf*1.2);$('zo').onclick=()=>zf=Math.max(.3,zf/1.2);$('lk').onclick=()=>free=false;$('pm').onclick=togglePause;$('sbb').onclick=toggleSB;$('mu').onclick=()=>{MUTE=!MUTE;$('mu').textContent=MUTE?'🔇':'🔊'};
 $('q').onclick=()=>!tipLock&&castUI(0);$('e').onclick=()=>!tipLock&&castUI(1);$('r').onclick=()=>!tipLock&&castUI(2);
@@ -1583,7 +1603,7 @@ function loop(ts){try{menuBg(ts)}catch(e){}const rd=Math.min(.1,(ts-last)/1000||
  if(ts-perfTick>=1500){
   const fps=Math.round(perfFrames*1000/(ts-perfTick||1));
   const rate=Math.round(netFrames*1000/(ts-perfTick||1));
-  const el=$('netFps');if(el)el.textContent='FPS: '+fps+(ROLE=='g'?' · Сеть: '+rate+'/с':'');
+  const el=$('netFps');if(el)el.textContent='FPS: '+fps+(ROLE=='g'?' · Сеть: '+rate+'/с · До Radiant: '+(hostRtt||'—')+' мс':'');
   perfTick=ts;perfFrames=0;netFrames=0;
  }
  requestAnimationFrame(loop)}

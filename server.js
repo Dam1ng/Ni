@@ -112,7 +112,7 @@ function handle(s, d) {
     if (!s.id || !s.nick) { send(s, { type: 'error', message: 'Сначала выберите никнейм' }); return; }
     if (s.match) { send(s, { type: 'error', message: 'Вы уже в матче' }); return; }
     clearWaiting(s);
-    s.hero = bound(d.h, 31); s.mmr = bound(d.mmr); s.nick = validNick(d.nick) ? d.nick : s.nick;
+    s.hero = bound(d.h, 36); s.mmr = bound(d.mmr); s.nick = validNick(d.nick) ? d.nick : s.nick;
     if (d.type === 'create') {
       s.invite = codeGen(); invites.set(s.invite, s);
       send(s, { type: 'waiting', code: s.invite }); return;

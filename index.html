@@ -148,6 +148,8 @@ button.on{border-color:var(--ac);color:var(--ac)}
 /* Ping indicator: accurate WebSocket round-trip time to the game server. */
 #top .ping-indicator{position:relative;z-index:7;display:inline-flex;align-items:center;gap:6px;flex:none;white-space:nowrap;padding:5px 9px;border:1px solid #52616f;border-radius:9px;background:#151e2bcc;color:#e8eef5;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;text-shadow:0 1px 2px #000;box-shadow:0 2px 7px #0004}
 #top .ping-indicator span{display:inline;gap:0}
+#top .net-fps{font-size:11px;white-space:nowrap;opacity:.8;font-variant-numeric:tabular-nums}
+@media(max-width:800px){#top .net-fps{display:none}}
 .ping-dot{display:inline-block;flex:none;width:7px;height:7px;border-radius:50%;background:#7e8b99;box-shadow:0 0 5px #7e8b9944}
 .ping-indicator.good .ping-dot{background:#55db8d;box-shadow:0 0 7px #55db8d88}
 .ping-indicator.warn .ping-dot{background:#ffd15b;box-shadow:0 0 7px #ffd15b88}
@@ -155,7 +157,7 @@ button.on{border-color:var(--ac);color:var(--ac)}
 .ping-indicator.pending .ping-dot{background:#89b9ff;box-shadow:0 0 7px #89b9ff77}
 @media(max-width:700px){#top{flex-wrap:wrap}#top .ping-indicator{padding:4px 6px;font-size:11px}}
 </style></head><body>
-<div id="top"><b id="tm">0:00</b><b id="cry" title="Кристаллы · B — магазин">💎 0</b><div id="netPing" class="ping-indicator offline" title="Нет соединения с игровым сервером" role="status" aria-live="off"><i class="ping-dot"></i><span id="pingValue">Пинг: —</span></div><span id="rk"></span><span><button id="zo">−</button><button id="zi">＋</button><button id="lk" class="on" title="Камера на герое (Пробел)">🎯</button><button id="mu" title="Звук">🔊</button><button id="pm" title="Меню (Esc)">☰</button><button id="shp" title="Магазин (B)">🛒</button><button id="sbb" title="Игроки (Tab)">👥</button></span><span><button data-s="1" class="on">×1</button><button data-s="3">×3</button><button data-s="8">×8</button></span></div>
+<div id="top"><b id="tm">0:00</b><b id="cry" title="Кристаллы · B — магазин">💎 0</b><div id="netPing" class="ping-indicator offline" title="Нет соединения с игровым сервером" role="status" aria-live="off"><i class="ping-dot"></i><span id="pingValue">Пинг: —</span></div><span class="net-fps" id="netFps" title="Частота кадров и частота получения сетевых обновлений">FPS: — · Сеть: —</span><span id="rk"></span><span><button id="zo">−</button><button id="zi">＋</button><button id="lk" class="on" title="Камера на герое (Пробел)">🎯</button><button id="mu" title="Звук">🔊</button><button id="pm" title="Меню (Esc)">☰</button><button id="shp" title="Магазин (B)">🛒</button><button id="sbb" title="Игроки (Tab)">👥</button></span><span><button data-s="1" class="on">×1</button><button data-s="3">×3</button><button data-s="8">×8</button></span></div>
 <div id="stage"><canvas id="c"></canvas><div id="inf"></div><div id="toast"></div><div id="tip" hidden></div><div id="sb" hidden></div><div id="kf"></div><div id="shop" hidden></div><div id="its"><button id="i0"></button><button id="i1"></button><button id="i2"></button></div>
 <div id="hb"><canvas id="mm" width="160" height="160"></canvas><div id="bars"><div class="pbox"><div id="hpic"></div><b id="lvb">1</b></div><div class="bcol"><div class="bar hpb" id="hpw"><i id="hpl"></i><i id="hp" class="f h"></i><i id="shd"></i><span id="hpt"></span></div><div class="bar xpb" id="xpw"><i id="xp"></i><span id="xpt"></span></div></div></div><div class="sk"><button id="q" data-k="Q"></button><button id="e" data-k="E"></button><button id="r" data-k="R"></button><div id="ps"></div></div></div></div>
 <canvas id="mbg"></canvas>
@@ -986,11 +988,30 @@ function sendSnap(){if(!NR||!RM)return;const q=++snapQ,hs=[],ts=[],bs=[],cs=[],s
   else if(k=='jn'){if(u.dead)continue;cs.push([u.id,Math.round(u.x),Math.round(u.y),Math.round(u.hp),+(u.fa||0).toFixed(1)]);if(T-u.born<.9||hNeed.has(u.id))ss.push(stat(u))}
   else if(k=='neu'){bs.push([u.id,Math.round(u.x),Math.round(u.y),Math.round(u.hp),u.dead?1:0]);if(T-u.born<.9||hNeed.has(u.id))ss.push(stat(u))}}
  hNeed.clear();const me=RM;
- em('snap',{q,T:Math.round(T*10)/10,g:[kills[0],kills[1],Math.round(nextRune),neuAt>1e8?-1:Math.round(neuAt),futAt>1e8?-1:Math.round(futAt),neuN,win,(neu&&!neu.dead?1:0)|(fut&&!fut.dead?2:0)],h:hs,t:ts,n:bs,r:runeOn?[Math.round(runeOn.x),Math.round(runeOn.y)]:0,a:arunes.map(r=>[Math.round(r.x),Math.round(r.y),r.t=='hp'?1:0,r.a]),m:mega.map(a=>a.join('')),sx:(win>=0||q%14==0)?U.filter(u=>u.k=='hero').map(u=>[u.id,u.kc||0,u.dc||0,u.ac||0,Math.round(u.sDH||0),Math.round(u.sDT||0),Math.round(u.sHL||0),u.sCK||0,u.sTW||0,Math.round(u.sXP||0),Math.round(u.sTK||0),Math.round(u.sDD||0),Math.round(u.cry||0),(u.itm||[])[0]|0,(u.itm||[])[1]|0,(u.itm||[])[2]|0]):0,me:[Math.round(me.dmg),+me.c[0].toFixed(1),+me.c[1].toFixed(1),+me.c[2].toFixed(1),me.kc||0,me.dc||0,Math.round(me.cry||0),me.itm[0]|0,me.itm[1]|0,me.itm[2]|0],cp:CAMPS.map(c=>c.nx>0?Math.ceil(c.nx-T):0)});
- for(let i=0,n=Math.ceil(cs.length/90)||1;i<n;i++)em('crea',{q,i,n,l:cs.slice(i*90,i*90+90)});
- const evs=EVQ.filter(e=>e[0]>guestAck&&e[1]!=0).slice(-30);if(evs.length||ss.length)em('ext',{q,e:evs,s:ss.slice(0,60)})}
-function setPos(u,x,y){if(u.tx==null||u.hid){u.x=x;u.y=y;u.hid=false}u.tx=x;u.ty=y}
+
+ const evs=EVQ.filter(e=>e[0]>guestAck&&e[1]!=0).slice(-30);
+ // Match snapshot is delivered as one ordered WebSocket message (v1.0.3).
+ // Static descriptions arrive before dynamic positions, and effects after positions.
+ em('snap',{q,T:Math.round(T*10)/10,g:[kills[0],kills[1],Math.round(nextRune),neuAt>1e8?-1:Math.round(neuAt),futAt>1e8?-1:Math.round(futAt),neuN,win,(neu&&!neu.dead?1:0)|(fut&&!fut.dead?2:0)],h:hs,t:ts,n:bs,c:cs,s:ss.slice(0,60),e:evs,r:runeOn?[Math.round(runeOn.x),Math.round(runeOn.y)]:0,a:arunes.map(r=>[Math.round(r.x),Math.round(r.y),r.t=='hp'?1:0,r.a]),m:mega.map(a=>a.join('')),sx:(win>=0||q%14==0)?U.filter(u=>u.k=='hero').map(u=>[u.id,u.kc||0,u.dc||0,u.ac||0,Math.round(u.sDH||0),Math.round(u.sDT||0),Math.round(u.sHL||0),u.sCK||0,u.sTW||0,Math.round(u.sXP||0),Math.round(u.sTK||0),Math.round(u.sDD||0),Math.round(u.cry||0),(u.itm||[])[0]|0,(u.itm||[])[1]|0,(u.itm||[])[2]|0]):0,me:[Math.round(me.dmg),+me.c[0].toFixed(1),+me.c[1].toFixed(1),+me.c[2].toFixed(1),me.kc||0,me.dc||0,Math.round(me.cry||0),me.itm[0]|0,me.itm[1]|0,me.itm[2]|0],cp:CAMPS.map(c=>c.nx>0?Math.ceil(c.nx-T):0)});
+}
+function setPos(u,x,y){
+ const now=performance.now();
+ if(u.tx==null||u.hid){u.x=x;u.y=y;u.nvx=0;u.nvy=0;u.hid=false}
+ else{
+  const dt=Math.max(.025,Math.min(.4,(now-(u.netAt||now-85))/1000));
+  const dx=x-u.tx,dy=y-u.ty;
+  if(Math.hypot(dx,dy)>Math.max(190,dt*1900)){
+   // Long blink, forced teleport or respawn: do not interpolate through walls.
+   u.x=x;u.y=y;u.nvx=0;u.nvy=0;
+  }else{
+   u.nvx=Math.max(-1450,Math.min(1450,dx/dt));
+   u.nvy=Math.max(-1450,Math.min(1450,dy/dt));
+  }
+ }
+ u.tx=x;u.ty=y;u.netAt=now;
+}
 function onSnap(msg){if(ROLE!='g'||msg.isMe||!msg.data)return;const d=msg.data;if(d.q<=GQ)return;GQ=d.q;lastSnapAt=performance.now();
+ netFrames++;if(d.s)for(const a of d.s)mkStatic(a);
  if(Math.abs(T-d.T)>1)T=d.T;else T+=(d.T-T)*.2;const g=d.g;kills=[g[0],g[1]];nextRune=g[2];neuAt=g[3]<0?1e9:g[3];futAt=g[4]<0?1e9:g[4];neuN=g[5];neu={dead:!(g[7]&1)};fut={dead:!(g[7]&2)};
  runeOn=d.r?{x:d.r[0],y:d.r[1]}:null;arunes=d.a.map(a=>({x:a[0],y:a[1],t:a[2]?'hp':'dmg',a:a[3]}));mega=d.m.map(t=>[...t].map(Number));if(d.sx)for(const a of d.sx){const u=UM.get(a[0]);if(u){u.kc=a[1];u.dc=a[2];u.ac=a[3];u.sDH=a[4];u.sDT=a[5];u.sHL=a[6];u.sCK=a[7];u.sTW=a[8];u.sXP=a[9];u.sTK=a[10];u.sDD=a[11];u.cry=a[12]|0;u.itm=[a[13]|0,a[14]|0,a[15]|0]}}
  for(const a of d.h){const u=UM.get(a[0]);if(!u)continue;setPos(u,a[1],a[2]);u.hp=a[3];u.lvl=a[4];u.xp=a[5];u.fa=a[6];const f=a[7];u.st=f&1?1:0;u.sl=f&2?1:0;u.sh=f&4?1:0;u.inv=f&8?1:0;u.dead=!!(f&16);u.hs=f&32?1:0;u.rage=f&64?1:0;u.cu=f&128?1:0;u.bn=f&256?1:0;u.dbl=f&512?1:0;u.mhp=a[8];u.rt=a[9];u.kc=a[10]||0;u.dc=a[11]||0;u.ac=a[12]||0}
@@ -999,6 +1020,8 @@ function onSnap(msg){if(ROLE!='g'||msg.isMe||!msg.data)return;const d=msg.data;i
  for(const u of U)if(u.k=='neu'&&!bid.has(u.id)){UM.delete(u.id);u.gone=1}
  if(d.me&&P){P.dmg=d.me[0];P.c=[d.me[1],d.me[2],d.me[3]];P.kc=d.me[4];P.dc=d.me[5];P.cry=d.me[6]|0;P.itm=[d.me[7]|0,d.me[8]|0,d.me[9]|0]}if(d.cp)d.cp.forEach((v,i)=>{if(CAMPS[i])CAMPS[i].rg=v})
  U=U.filter(u=>!u.gone);
+ if(d.c)onCrea({isMe:false,data:{q:d.q,i:0,n:1,l:d.c}});
+ if(d.e)for(const e of d.e){if(e[0]<=lastEvG)continue;lastEvG=e[0];applyEv(e)}
  if(!gFirst&&P&&!P.hid){gFirst=1;cam.x=P.x;cam.y=P.y}
  if(g[6]>=0&&win<0){win=g[6];ov(2)}}
 function onCrea(msg){if(ROLE!='g'||msg.isMe||!msg.data)return;const d=msg.data;if(d.q<CB.q)return;if(d.q>CB.q){CB.q=d.q;CB.ids=new Set();CB.cnt=0;CB.n=d.n}
@@ -1024,13 +1047,24 @@ function onCtl(msg){const d=msg.data;if(!d||msg.isMe)return;
  else if(d.t=='dr'&&MM&&MM.role=='g'&&ROLE=='s')drRecv(d)
  else if(d.t=='da'&&MM&&MM.role=='h'&&DR&&DR.st<12){const a=DSEQ[DR.st];if(a[1]==1&&drHuman(DR.st)){if(a[0]=='p')GSK=skValid(d.h|0,d.sk|0);drApply(d.h|0)}}}
 function guestStart(d){ROLE='g';VT=1;MP={hn:d.hn,gn:d.gn};ended=false;gFirst=0;OPPR=(MM&&MM.m&&MM.m.hm)||PROF.mmr;audioInit();$('ov').hidden=true;ovMode='game';cache={};
- KL.length=0;KF.length=0;U=[];UM.clear();fx=[];toast=[];EVQ=[];lastEvG=0;GQ=0;CB.q=0;CAMPS=mkCamps();FT=[];ZN=[];shopSig='';$('shop').hidden=true;win=-1;T=0;kills=[0,0];runeOn=null;arunes=[];mega=[[],[]];neu={dead:true};fut={dead:true};spd=1;
+ KL.length=0;KF.length=0;U=[];UM.clear();fx=[];guestFogAt=0;guestMiniAt=0;toast=[];EVQ=[];lastEvG=0;GQ=0;CB.q=0;CAMPS=mkCamps();FT=[];ZN=[];shopSig='';$('shop').hidden=true;win=-1;T=0;kills=[0,0];runeOn=null;arunes=[];mega=[[],[]];neu={dead:true};fut={dead:true};spd=1;
  if(DR){clearInterval(DR.tm);DR=null}ROSTER=d.ro||ROSTER;for(const a of d.s){mkStatic(a[0]);const u=UM.get(a[0][1]);if(u){u.x=u.tx=a[1];u.y=u.ty=a[2];u.hid=false}}P=UM.get(d.gid)||null;if(P)P.c=[0,0,0];run=true;PROF.last=MM.m.gh;saveProf();$('rk').innerHTML=rankMedal(22)+'<span>'+esc(PROF.nick||'')+' · '+rankName()+'</span>';if(MM)MM.st='play';lastSnapAt=performance.now();em('ctl',{t:'ack'})}
 function startHostMatch(pk){const m=MM.m;ROLE='h';VT=0;MP={hn:m.hn,gn:m.gn};PROF.last=m.hh;saveProf();ended=false;audioInit();$('ov').hidden=true;ovMode='game';cache={};spd=1;OPPR=m.gm||PROF.mmr;init(pk[0][0],pk[1][0],pk);DIFF=avgBot();run=true;say('Боты: '+diffLabel());document.querySelectorAll('[data-s]').forEach(x=>x.classList.toggle('on',x.dataset.s==='1'));sendT=0;guestAck=0;evSeq=0;EVQ=[];gSeen=Date.now();MM.st='play';MM.started=1;$('rk').innerHTML=rankMedal(22)+'<span>'+esc(PROF.nick||'')+' · '+rankName()+'</span>';sendStart()}
 function sendStart(){if(!NR||!RM)return;em('ctl',{t:'start',gid:RM.id,hn:MP.hn,gn:MP.gn,ro:ROSTER,s:U.filter(u=>u.k=='hero'||u.k=='tower'||u.k=='throne').map(u=>[stat(u),Math.round(u.x),Math.round(u.y)])})}
-function netTick(rd){if(ROLE=='h'&&NR){sendT-=rd;if(sendT<=0){sendT=1/7;sendSnap()}hostWatch(rd)}else if(ROLE=='g'){guestTick(rd)}}
+function netTick(rd){if(ROLE=='h'&&NR){sendT-=rd;if(sendT<=0){sendT=Math.max(0,sendT)+1/12;sendSnap()}hostWatch(rd)}else if(ROLE=='g'){guestTick(rd)}}
 function hostWatch(rd){peerT-=rd;if(peerT>0)return;peerT=1;if(MM&&!MM.acked&&MM.started&&Date.now()-MM.joinT<60000)sendStart();if(!RM||!RM.rm)return;const g=NR.peers().some(p=>!p.isMe&&p.presence&&p.presence.role=='g');if(g)gSeen=Date.now();else if(Date.now()-gSeen>9000){RM.rm=false;say('Соперник отключился — его героем управляет бот')}}
-function guestTick(rd){const a=Math.min(1,rd*12);for(const u of U)if(u.tx!=null){u.x+=(u.tx-u.x)*a;u.y+=(u.ty-u.y)*a}
+function guestTick(rd){
+ const now=performance.now(),a=1-Math.exp(-Math.max(0,rd)*20);
+ for(const u of U)if(u.tx!=null){
+  // Short bounded extrapolation while waiting for the next host snapshot.
+  // Stops/teleports get corrected by the authoritative host immediately.
+  const age=Math.max(0,(now-(u.netAt||now))/1000);
+  const lead=Math.min(.105,Math.max(0,age-.012))*.75;
+  const aimX=Math.max(0,Math.min(W,u.tx+(u.nvx||0)*lead));
+  const aimY=Math.max(0,Math.min(W,u.ty+(u.nvy||0)*lead));
+  if(Math.hypot(u.x-aimX,u.y-aimY)>260){u.x=aimX;u.y=aimY}
+  else{u.x+=(aimX-u.x)*a;u.y+=(aimY-u.y)*a}
+ }
  T+=rd;for(const t of toast)t.t-=rd;toast=toast.filter(t=>t.t>0);for(const f of fx)f.t-=rd;fx=fx.filter(f=>f.t>0);
  gHb-=rd;if(gHb<=0){gHb=.4;cmd({k:'k',e:lastEvG,n:needs.size?[...needs].slice(0,40):0});needs.clear()}
  if(win<0&&performance.now()-lastSnapAt>8000){ov('lost')}}
@@ -1533,7 +1567,7 @@ const showTip=id=>{tipId=id;$('tip').hidden=false},hideTip=()=>{tipId=null;$('ti
  b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up)});
 const KY={};addEventListener('keydown',e=>{if(e.target&&e.target.tagName=='INPUT')return;KY[e.code]=1;if(e.code=='Escape'){if(shopOpen())toggleShop(false);else togglePause()}if(e.code=='KeyB')toggleShop();if(e.code=='Tab'){e.preventDefault();toggleSB()}if(e.code=='KeyQ')castUI(0);if(e.code=='KeyE')castUI(1);if(e.code=='KeyR')castUI(2);if(e.code=='Space'){free=false;e.preventDefault()}});addEventListener('keyup',e=>KY[e.code]=0);
 document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{if(ROLE!=='s')return;spd=+b.dataset.s;document.querySelectorAll('[data-s]').forEach(x=>x.classList.toggle('on',x==b))});
-let last=0;
+let last=0,guestFogAt=0,guestMiniAt=0,perfTick=0,perfFrames=0,netFrames=0;
 function loop(ts){try{menuBg(ts)}catch(e){}const rd=Math.min(.1,(ts-last)/1000||0);last=ts;
  netTick(rd);if(run&&win<0&&ROLE!='g'){let r=rd*(ROLE=='h'?1:spd);while(r>0){const s=Math.min(.05,r);step(s);r-=s;if(win>=0)break}}
  z=zoom();const ps=cw/z*.8*rd;let pan=0;
@@ -1541,7 +1575,18 @@ function loop(ts){try{menuBg(ts)}catch(e){}const rd=Math.min(.1,(ts-last)/1000||
  if(pan)free=true;
  if(!free&&P){const a=Math.min(1,rd*8);cam.x+=(P.x-cam.x)*a;cam.y+=(P.y-cam.y)*a}
  const hx=cw/2/z,hy=ch/2/z;cam.x=hx*2>=W?W/2:Math.max(hx,Math.min(W-hx,cam.x));cam.y=hy*2>=W?W/2:Math.max(hy,Math.min(W-hy,cam.y));
- updFog();draw();drawMM();hud();requestAnimationFrame(loop)}
+ if(ROLE!='g'||ts-guestFogAt>95){updFog();guestFogAt=ts}
+ draw();
+ if(ROLE!='g'||ts-guestMiniAt>65){drawMM();guestMiniAt=ts}
+ hud();
+ perfFrames++;
+ if(ts-perfTick>=1500){
+  const fps=Math.round(perfFrames*1000/(ts-perfTick||1));
+  const rate=Math.round(netFrames*1000/(ts-perfTick||1));
+  const el=$('netFps');if(el)el.textContent='FPS: '+fps+(ROLE=='g'?' · Сеть: '+rate+'/с':'');
+  perfTick=ts;perfFrames=0;netFrames=0;
+ }
+ requestAnimationFrame(loop)}
 $('shp').onclick=()=>toggleShop();[0,1,2].forEach(i=>$('i'+i).onclick=()=>toggleShop(true));
 $('shop').addEventListener('click',e=>{const t=e.target.closest('[data-b],[data-sl],[data-x],[data-nx]');if(!t)return;if(t.dataset.x)toggleShop(false);else if(t.dataset.nx)doBuyNext();else if(t.dataset.b)doBuy(+t.dataset.b);else if(t.dataset.sl!=null)doSell(+t.dataset.sl)});
 ov(PROF.nick?'menu':'nick');requestAnimationFrame(loop);

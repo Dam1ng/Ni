@@ -142,6 +142,9 @@ function handle(s, d) {
   if (d.type === 'relay' && s.ready && other.ready) {
     const allowed = s.role === 'h' ? ['ctl', 'snap', 'crea', 'ext'] : ['ctl', 'cmd'];
     if (!allowed.includes(d.event)) return;
+    // The newest state supersedes an older snapshot. Avoid seconds of queued updates
+    // when the guest is on a slow connection; control and draft messages are never dropped.
+    if (d.event === 'snap' && other.socket.writableLength > 64 * 1024) return;
     send(other, { type: 'relay', event: d.event, data: d.data });
   }
 }

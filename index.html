@@ -1034,7 +1034,7 @@ function netConnect(){if(NET&&(NET.readyState===WebSocket.OPEN||NET.readyState==
  NET=new WebSocket(ONLINE_URL);
  NET.onopen=()=>{netReady=true;boardErr='';clearTimeout(netRetry);netSend({type:'hello',id:devId,nick:PROF.nick||'',mmr:PROF.mmr});pushBoard();loadBoard();if(ovMode==='search'&&MM&&MM.st==='err')ov('search')};
  NET.onmessage=e=>{try{onNetMessage(JSON.parse(e.data))}catch(err){console.warn('Сетевое сообщение',err)}};
- NET.onclose=()=>{netReady=false;netPeer=null;NR=null;if(MM){if(MM.st==='play'||MM.st==='join'||MM.drafting||ROLE!=='s'){if(ROLE==='g'||ROLE==='h'||DR) { if(DR){clearInterval(DR.tm);DR=null}run=false;ov('lost')} }else {MM={st:'err',msg:'Соединение с сервером потеряно'};ov('search')}}
+ NET.onclose=()=>{netReady=false;netPeer=null;NR=null;if(MM){if(MM.st==='play'||MM.st==='join'||MM.st==='draft'||MM.drafting||ROLE!=='s'){if(ROLE==='g'||ROLE==='h'||DR) { if(DR){clearInterval(DR.tm);DR=null}run=false;ov('lost')} }else {MM={st:'err',msg:'Соединение с сервером потеряно'};ov('search')}}
    if(!netRetry)netRetry=setTimeout(()=>{netRetry=null;netConnect()},2500)};
  NET.onerror=()=>{};
 }
@@ -1306,8 +1306,10 @@ function drSched(){DR.dl=Date.now()+(DR.st<12&&drHuman(DR.st)?60000:1500+Math.ra
 function drSync(){if(DR&&DR.online&&MM&&MM.role=='h')em('ctl',{t:'dr',st:DR.st,b:DR.bans,p:DR.pk,rem:Math.max(0,DR.dl-Date.now()),ro:ROSTER})}
 function startDraft(online,oppN,oppM){if(MM&&!online)cancelSearch(1);if(!PROF.nick){ov('nick');return}mkRoster(online,oppN,oppM);ROLE='s';
  DR={st:0,bans:[[],[]],pk:[[null,null,null,null],[null,null,null,null]],online:!!online,me:0};dsel=-1;drSched();DR.tm=setInterval(drTick,300);ov('draft');drSync()}
-function startHostDraft(){const m=MM.m;startDraft(true,m.gn,m.gm);MM.drafting=1}
-function drRecv(d){if(d.st>=12)return;const first=!DR;if(first){DR={online:true,me:1,tm:setInterval(drTick,300)};dsel=-1}const ch=DR.st!==d.st;DR.st=d.st;DR.bans=d.b;DR.pk=d.p;DR.dl=Date.now()+d.rem;ROSTER=d.ro;DR.last=Date.now();if(first||ch)ov('draft')}
+// Как только начался драфт, ожидание подключения закончено у ОБОИХ игроков.
+function draftConnected(){if(!MM)return;MM.st='draft';MM.drafting=1;if(MM.tm){clearInterval(MM.tm);MM.tm=null}}
+function startHostDraft(){const m=MM.m;draftConnected();startDraft(true,m.gn,m.gm)}
+function drRecv(d){if(d.st>=12)return;draftConnected();const first=!DR;if(first){DR={online:true,me:1,tm:setInterval(drTick,300)};dsel=-1}const ch=DR.st!==d.st;DR.st=d.st;DR.bans=d.b;DR.pk=d.p;DR.dl=Date.now()+d.rem;ROSTER=d.ro;DR.last=Date.now();if(first||ch)ov('draft')}
 function drTick(){if(!DR)return;const host=!DR.online||(MM&&MM.role=='h');
  if(host&&DR.st<12){if(Date.now()>=DR.dl){if(drHuman(DR.st))drAuto();else drBot();if(!DR)return}if(DR.online&&(DR.hb=(DR.hb||0)+1)%3==0)drSync();
   if(DR.online&&MM&&NR){const g=NR.peers().some(p=>!p.isMe&&p.presence&&p.presence.role=='g');if(g)DR.gs=Date.now();else if(Date.now()-(DR.gs||(DR.gs=Date.now()))>12000){drAbort('Соперник вышел из драфта');return}}}

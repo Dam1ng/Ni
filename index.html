@@ -187,7 +187,7 @@ button.on{border-color:var(--ac);color:var(--ac)}
 #multiKillBanner.visible{opacity:1;transform:translateX(-50%) scale(1)}#multiKillBanner .killer{display:block;font-size:12px;color:#faf4ff;letter-spacing:0;margin-top:3px}#multiKillBanner.rampage{border-color:#ffe28a;box-shadow:0 0 55px #ffb52696,inset 0 0 22px #fff17b55;color:#ffe78c}
 @media(max-width:800px){#matchScore{gap:2px;padding:3px 5px}.score-squad{gap:1px}.score-face{width:21px;height:22px;font-size:11px}.score-face small{font-size:9px}.score-value{min-width:47px;font-size:15px}.score-value em{padding:0 1px}#eventTrack{top:41px;gap:3px}.evcard{min-width:22px;min-height:23px;padding:2px 4px;gap:3px}.evig{font-size:16px}.evname{font-size:8px}.evstate{display:none}#inf{top:77px}#kf{top:79px}#toast{top:106px}#multiKillBanner{top:106px;font-size:18px;padding:8px 12px;min-width:160px}}
 </style></head><body>
-<div id="top"><b id="tm">0:00</b><b id="cry" title="Кристаллы · B — магазин">💎 0</b><div id="netPing" class="ping-indicator offline" title="Нет соединения с игровым сервером" role="status" aria-live="off"><i class="ping-dot"></i><span id="pingValue">Пинг: —</span></div><span id="clientVersion" title="Версия игрового клиента" style="font-size:11px;opacity:.75;white-space:nowrap">v0.1.0</span><span class="net-fps" id="netFps" title="Частота кадров и частота получения сетевых обновлений">FPS: — · Сеть: —</span><span id="rk"></span><span><button id="zo">−</button><button id="zi">＋</button><button id="lk" class="on" title="Камера на герое (Пробел)">🎯</button><button id="mu" title="Звук">🔊</button><button id="pm" title="Меню (Esc)">☰</button><button id="shp" title="Магазин (B)">🛒</button><button id="sbb" title="Игроки (Tab)">👥</button></span><span><button data-s="1" class="on">×1</button><button data-s="3">×3</button><button data-s="8">×8</button></span></div>
+<div id="top"><b id="tm">0:00</b><b id="cry" title="Кристаллы · B — магазин">💎 0</b><div id="netPing" class="ping-indicator offline" title="Нет соединения с игровым сервером" role="status" aria-live="off"><i class="ping-dot"></i><span id="pingValue">Пинг: —</span></div><span id="clientVersion" title="Версия игрового клиента" style="font-size:11px;opacity:.75;white-space:nowrap">v0.1.1</span><span class="net-fps" id="netFps" title="Частота кадров и частота получения сетевых обновлений">FPS: — · Сеть: —</span><span id="rk"></span><span><button id="zo">−</button><button id="zi">＋</button><button id="lk" class="on" title="Камера на герое (Пробел)">🎯</button><button id="mu" title="Звук">🔊</button><button id="pm" title="Меню (Esc)">☰</button><button id="shp" title="Магазин (B)">🛒</button><button id="sbb" title="Игроки (Tab)">👥</button></span><span><button data-s="1" class="on">×1</button><button data-s="3">×3</button><button data-s="8">×8</button></span></div>
 <div id="stage"><canvas id="c"></canvas><div id="matchScore" aria-label="Счёт матча и возрождение героев"></div><div id="multiKillBanner" aria-live="polite"></div><div id="eventTrack" aria-label="События матча">
  <div class="evcard" data-kind="rune" tabindex="0"><span class="evig">💠</span><div><div class="evname">РУНЫ</div><div id="evRuneState" class="evstate">—</div></div><div id="evRuneTip" class="evtip" role="tooltip">Следующая руна: —</div></div>
  <div class="evcard" data-kind="guardian" tabindex="0"><span class="evig">🛡️</span><div><div class="evname">СТРАЖ</div><div id="evGuardState" class="evstate">—</div></div><div id="evGuardTip" class="evtip" role="tooltip">Древний Страж: —</div></div>
@@ -660,7 +660,7 @@ function mk(o){o.id=++UID;o.born=T;o.bn=0;o.cu=0;o.rage=0;o.arm=0;o.hot=0;o.hotv
 function recalc(u){const H=HER[u.h],f=u.lvl-1,o=u.mhp||0,ia=u.ia||IA0;u.mhp=H.hp*(1+.13*f)*(u.h==13&&ptier(u)?1+[.08,.14,.2][ptier(u)-1]:1)*(1+ia.hpP)+ia.hp+(u.tf?u.tf.hpb:0);u.dmg=H.dmg*(1+.11*f)*(1+ia.dm);u.hp=o?u.hp+u.mhp-o:u.mhp}
 function up(u){if(u.lvl<50){u.lvl++;recalc(u);if(u.pl||u.rm){const m={10:'Открыта третья способность — R!',20:'Открыт пассив «'+HER[u.h].ps[0]+'»!',30:'Пассив улучшен до II!',40:'Пассив улучшен до III!',50:'Максимальный уровень! Ультимейт усилен ★'}[u.lvl];if(u.pl){snd('level',null,null,1,1);if(m)say(m)}else{evq(1,['s','level',null,null,1]);if(m)evq(1,['t',m])}}}}
 const need=l=>80+l*45,ptier=u=>u.lvl>=40?3:u.lvl>=30?2:u.lvl>=20?1:0;
-function addXp(u,x){if(!u.pl&&!u.rm)x*=.9+.3*botD(u);u.sXP=(u.sXP||0)+x;u.xp+=x;while(u.lvl<50&&u.xp>=need(u.lvl)){u.xp-=need(u.lvl);up(u)}if(u.lvl>=50)u.xp=0}
+function addXp(u,x){/* Experience is identical for every participant; ranked AI improves decisions, not stats. */u.sXP=(u.sXP||0)+x;u.xp+=x;while(u.lvl<50&&u.xp>=need(u.lvl)){u.xp-=need(u.lvl);up(u)}if(u.lvl>=50)u.xp=0}
 function init(pi,p2,pk){KL.length=0;KF.length=0;for(const k in GR)GR[k]=GR[k].filter(o=>!o.t);U=[];fx=[];T=0;kills=[0,0];win=-1;scoreSig='';multiShownUntil=0;neu=null;neuAt=600;neuN=0;fut=null;futAt=1200;futN=0;arunes=[];arT=60;mega=[[],[]];nextWave=5;nextRune=120;runeOn=null;toast=[];free=false;zf=1;
  for(let tm=0;tm<2;tm++){
   for(let l=0;l<3;l++)for(let k=1;k<=3;k++){const p=pt(l,tm,[[2250,1500,900],[1900,1300,700],[2250,1500,900]][l][k-1]);regOb(mk({k:'tower',team:tm,l,tier:k,x:p[0],y:p[1],hp:2200,mhp:2200,dmg:[90,125,165][k-1],rg:280,as:1,r:30}),34)}
@@ -914,28 +914,89 @@ function ultOK(u,t){const k=HER[u.h].ab[2],E2=r=>U.filter(o=>o.k=='hero'&&!o.dea
  case'bonds':return A(650).length>=1&&e7.length>=1;case'carpet':return e7.length>=1;case'eclipse':return E2(450).length>=2;case'hex':return t.k=='hero';case'bloodlake':return E2(330).length>=1&&hp<.85;
  case'sanct':return e4.length>=1&&(hp<.6||A(300).length>=1);case'chainstorm':return e7.length>=2;case'eye':return T>200&&U.some(o=>o.k=='hero'&&!o.dead&&o.team!=u.team&&D(o,u)<2200);case'royal':return e4.length>=1;
  case'ballista':return e7.length>=1&&hp>.5;case'pulverize':return t.k=='hero'&&D(u,t)<250;default:{const eh=E2(320).length;return eh>=2||(t.k=='hero'&&t.hp<t.mhp*.5)||t.k=='neu'}}}
-function fight(u,t){if(D(u,t)<u.rg+80){const dd=botD(u),pr=.35+.65*dd;if(Math.random()<pr)cast(u,0);if(dd>.1&&Math.random()<pr&&(u.h==1?u.hp<u.mhp*.5:u.h==7?U.some(o=>o.k=='hero'&&!o.dead&&o.team==u.team&&D(o,u)<450&&o.hp<o.mhp*.7):u.h==12?u.hp<u.mhp*.8:(u.h==15||u.h==17)?u.hp<u.mhp*.5:(u.h==18||u.h==22||u.h==23)?U.some(o=>o.k=='hero'&&!o.dead&&o.team==u.team&&D(o,u)<400&&o.hp<o.mhp*.75):true))cast(u,1);if(dd>.2&&u.lvl>=10&&u.c[2]<=0&&ultOK(u,t))cast(u,2)}}
+function fight(u,t){
+ if(!t||t.dead||D(u,t)>u.rg+145)return;
+ const dd=botD(u),enemyHero=t.k=='hero',danger=u.hp/u.mhp<.53;
+ const allies=U.filter(o=>o.k=='hero'&&o.team==u.team&&!o.dead&&D(o,u)<430);
+ const needHelp=allies.some(o=>o.hp/o.mhp<.68),enemyCount=U.filter(o=>o.k=='hero'&&o.team!=u.team&&!o.dead&&D(o,u)<390).length;
+ if(T<(u.nextSpellAt||0))return;
+ u.nextSpellAt=T+(.95-dd*.6);
+ const a=HER[u.h].ab;
+ if(u.c[2]<=0&&u.lvl>=10&&dd>.22&&ultOK(u,t)&&(enemyHero||enemyCount>=2||t.k=='neu'))cast(u,2);
+ // Support skills must be useful, not automatically thrown at the first creep.
+ if(u.c[1]<=0){
+  const support=HROLE[u.h]==3;
+  if((support?(needHelp||danger||(enemyHero&&dd>.45)):(enemyHero||danger||(t.k=='neu'&&dd>.6)))&&
+     (dd>.48||((u.id+Math.floor(T*1.3))%3!==0)))cast(u,1);
+ }
+ if(u.c[0]<=0){
+  const support=HROLE[u.h]==3;
+  const wave=U.filter(o=>o.k=='creep'&&o.team!=u.team&&!o.dead&&D(o,u)<u.rg+180).length;
+  if((support?(needHelp||enemyHero):(enemyHero||t.k=='neu'||wave>=3||danger))&&
+     (dd>.55||((u.id+Math.floor(T*1.5))%4!==0)))cast(u,0);
+ }
+}
 let TP=[{w:0,r:null},{w:0,r:null}],planT=0;
 function rally(tm,b){return ENT[b.a]}
 const bossT=()=>fut&&!fut.dead?fut:(neu&&!neu.dead?neu:null);
 function plan(){for(let tm=0;tm<2;tm++){
- const tp=TP[tm],hs=U.filter(o=>o.k=='hero'&&!o.dead&&o.team==tm&&!o.pl&&!o.rm),en=U.filter(o=>o.k=='hero'&&!o.dead&&o.team!=tm&&seen(tm,o.x,o.y));
- hs.forEach(o=>o.job=0);U.filter(o=>o.k=='hero'&&o.team==tm&&!o.pl&&!o.rm).forEach(botBuy);const dd=teamD(tm);let fr=hs.filter(o=>!o.rec&&o.hp>o.mhp*.4);
- if(dd>.15&&en.some(e=>D(e,TH[tm])<750)){fr.forEach(o=>o.job=2);tp.w=0;continue}
- const bs=dd>.25?bossT():null;if(bs){if(!tp.r||tp.b!==bs){tp.r=rally(tm,bs);tp.b=bs;tp.w=0}const sj=fr.slice().sort((a,b)=>D(a,bs)-D(b,bs)).slice(0,bs.boss==2?4:3);sj.forEach(o=>o.job=1);tp.w=sj.length?tp.w+1:0;fr=fr.filter(o=>!o.job)}else{tp.w=0;tp.r=null;tp.b=null}
- for(const r of dd>.2?arunes:[]){let b=null,bd=3500;for(const o of fr){const d=D(o,r);if(d<bd){bd=d;b=o}}if(b){b.job=3;if(b.rune!==r){b.rune=r;b.ph=0}fr=fr.filter(o=>o!==b)}}
- const tw=U.filter(o=>o.k=='tower'&&o.team==tm&&!o.dead),ec=[0,1,2].map(l=>en.filter(e=>tw.some(t=>t.l==l&&D(e,t)<650)).length),cnt=[0,1,2].map(l=>fr.filter(o=>o.tl==l).length),pf=[0,1,2].map(l=>{let f=0;for(const o of U)if(o.k=='creep'&&o.team==tm&&o.l==l&&o.s>f)f=o.s;return f>LN[l].L*.55});
- fr.forEach(o=>{if(o.tl!=o.lane&&T-o.tt>12&&ec[o.tl]==0&&!pf[o.tl]){cnt[o.tl]--;o.tl=o.lane;cnt[o.lane]++;o.tt=T}});
- const send=l=>{let b=null,bs=1e9;const p=pt(l,tm,LN[l].L*.35);for(const o of fr){if(o.tl==l||cnt[o.tl]-ec[o.tl]<1)continue;const d=Math.hypot(o.x-p[0],o.y-p[1]);if(d<bs){bs=d;b=o}}if(b){cnt[b.tl]--;b.tl=l;b.tt=T;cnt[l]++}};
- if(dd>.35){for(let l=0;l<3;l++)if(ec[l]>cnt[l])send(l);
- for(let l=0;l<3;l++)if(pf[l]&&cnt[l]==0&&ec[l]==0)send(l);if(T>360){if(!tp.pl||T>tp.pt){let bl=1,bv=-1;for(let l=0;l<3;l++){let f=0;for(const o of U)if(o.k=='creep'&&o.team==tm&&o.l==l&&o.s>f)f=o.s;const v=U.filter(o=>o.k=='tower'&&o.team!=tm&&o.l==l&&o.dead).length*10000+f;if(v>bv){bv=v;bl=l}}tp.pl=bl;tp.pt=T+50}const pp=pt(tp.pl,tm,LN[tp.pl].L*.5);fr.slice().sort((a,b)=>Math.hypot(a.x-pp[0],a.y-pp[1])-Math.hypot(b.x-pp[0],b.y-pp[1])).slice(0,Math.min(3,fr.length)).forEach(o=>{if(o.tl!=tp.pl){o.tl=tp.pl;o.tt=T}})}}}}
+ const tp=TP[tm],dd=teamD(tm),hs=U.filter(o=>o.k=='hero'&&!o.dead&&o.team==tm&&!o.pl&&!o.rm);
+ const enemy=U.filter(o=>o.k=='hero'&&!o.dead&&o.team==1-tm&&seen(tm,o.x,o.y));
+ hs.forEach(o=>{o.job=0;o.defPos=null;botBuy(o)});
+ const tower=U.filter(o=>o.k=='tower'&&!o.dead&&o.team==tm),avail=hs.filter(o=>!o.rec&&o.hp/o.mhp>.44);
+ let free=avail.slice();
+ // Protect throne before any map objective, using only as many defenders as needed.
+ const atBase=enemy.filter(e=>D(e,TH[tm])<850);
+ if(atBase.length){free.slice().sort((a,b)=>D(a,TH[tm])-D(b,TH[tm])).slice(0,Math.min(free.length,Math.max(2,atBase.length))).forEach(o=>o.job=2);
+  free=free.filter(o=>!o.job);
+ }
+ // Rotate one nearby bot to help a threatened tower. High ranks react sooner.
+ if(dd>.35){for(const tw of tower){
+  const foes=enemy.filter(e=>D(e,tw)<(dd>.7?640:480));if(!foes.length)continue;
+  const defenders=U.filter(o=>o.k=='hero'&&!o.dead&&o.team==tm&&D(o,tw)<630).length;
+  if(defenders>=foes.length)continue;
+  const b=free.filter(o=>o.job==0).sort((a,b)=>D(a,tw)-D(b,tw))[0];
+  if(b&&D(b,tw)<2100){b.job=2;b.defPos=[tw.x,tw.y];free=free.filter(o=>o!==b)}
+ }}
+ // Boss calls only when reasonably safe. Old AI sent almost the entire team blindly.
+ const boss=dd>.48&&T>540&&free.length>=2&&!atBase.length?bossT():null;
+ const nearBossEnemy=boss&&enemy.some(e=>D(e,boss)<1000);
+ if(boss&&!nearBossEnemy&&kills[tm]+3>=kills[1-tm]){
+  const needed=boss.boss==2?3:2;
+  const group=free.filter(o=>o.hp/o.mhp>.68&&o.lvl>=(boss.boss==2?15:9))
+   .sort((a,b)=>D(a,boss)-D(b,boss)).slice(0,needed);
+  if(group.length===needed){tp.b=boss;tp.r=rally(tm,boss);tp.w=(tp.w||0)+1;
+   group.forEach(o=>o.job=1);free=free.filter(o=>!o.job)}
+  else{tp.w=0;tp.b=null;tp.r=null}
+ }else{tp.w=0;tp.b=null;tp.r=null}
+ // Capture runes with one available unit; do not abandon lanes for distant runes.
+ if(dd>.35)for(const r of arunes){if(enemy.some(e=>D(e,r)<600))continue;
+  const b=free.filter(o=>D(o,r)<1600).sort((a,b)=>D(a,r)-D(b,r))[0];
+  if(b){b.job=3;if(b.rune!==r){b.rune=r;b.ph=0}free=free.filter(o=>o!==b)}}
+ // Stable lanes with a short rotation cooldown, rather than constant random switches.
+ const cnt=[0,1,2].map(l=>free.filter(o=>o.tl==l).length);
+ const threat=[0,1,2].map(l=>enemy.filter(e=>tower.some(t=>t.l==l&&D(t,e)<800)).length);
+ for(let l=0;l<3;l++)if(dd>.44&&threat[l]>cnt[l]){
+  const b=free.filter(o=>o.tl!=l&&T-(o.tt||0)>24).sort((a,b)=>{
+   const a0=pt(l,tm,LN[l].L*.42);return D(a,{x:a0[0],y:a0[1]})-D(b,{x:a0[0],y:a0[1]})})[0];
+  if(b){cnt[b.tl]--;cnt[l]++;b.tl=l;b.tt=T}
+ }
+ for(const o of free)if(dd>.45&&T-(o.tt||0)>40&&o.tl!==o.lane&&threat[o.tl]==0&&cnt[o.tl]>1){cnt[o.tl]--;cnt[o.lane]++;o.tl=o.lane;o.tt=T}
+ // A coordinated push at high MMR, but only with allied lane creeps and no base threat.
+ if(dd>.76&&T>480&&!atBase.length&&free.length>=2){
+  const lanes=[0,1,2].map(l=>({l,c:U.filter(o=>o.k=='creep'&&!o.dead&&o.team==tm&&o.l==l&&o.s>LN[l].L*.5).length}));
+  lanes.sort((a,b)=>b.c-a.c);
+  if(lanes[0].c>=4){const l=lanes[0].l;free.filter(o=>o.tl!=l&&T-(o.tt||0)>32).slice(0,Math.min(2,free.length)).forEach(o=>{o.tl=l;o.tt=T})}
+ }
+}}
+
 const fpos=u=>{let f=0;for(const o of U)if(o.k=='creep'&&o.team==u.team&&o.l==u.tl&&o.s>f)f=o.s;return f};
-function ai(u,dt){u.te=(u.te||0)+dt;u.th=(u.th||0)-dt;if(u.th>0)return;const e=u.te;u.te=0;u.th=(.4-.32*botD(u))*(.7+Math.random()*.6);ai0(u,e)}
+function ai(u,dt){u.te=(u.te||0)+dt;u.th=(u.th||0)-dt;if(u.th>0)return;const e=u.te;u.te=0;u.th=(.52-.36*botD(u))*(.86+Math.random()*.28);aiSmart(u,e)}
 function ai0(u,dt){const home=TH[u.team],tp=TP[u.team],dd=botD(u),L=LN[u.tl].L;
  if(u.hp<u.mhp*(.16+.2*dd-(u.ia&&u.ia.eg&&!(u.egc>0)?.1:0)))u.rec=true;if(u.hp>u.mhp*.85)u.rec=false;
  if(u.rec){u.tgt=null;u.mv=[home.x,home.y];u.sc=0;return}
  u.wt+=dt;if(u.wt>3){u.sc=Math.hypot(u.x-u.lx,u.y-u.ly)<30&&!(u.tgt&&D(u,u.tgt)-u.tgt.r<=u.rg+10)?u.sc+1:0;if(u.sc>=2){u.stuck=8;u.sc=0}u.lx=u.x;u.ly=u.y;u.wt=0}
- if(u.job==2){const e=U.filter(o=>o.k=='hero'&&!o.dead&&o.team!=u.team&&D(o,home)<750&&seen(u.team,o.x,o.y)).sort((a,b)=>D(u,a)-D(u,b))[0];if(e){u.tgt=e;u.mv=null;fight(u,e);return}}
+ if(u.job==2){const defend=u.defPos?{x:u.defPos[0],y:u.defPos[1]}:home;const e=U.filter(o=>o.k=='hero'&&!o.dead&&o.team!=u.team&&D(o,defend)<750&&seen(u.team,o.x,o.y)).sort((a,b)=>D(u,a)-D(u,b))[0];if(e){u.tgt=e;u.mv=null;fight(u,e);return}if(D(u,defend)>300){u.tgt=null;u.mv=[defend.x,defend.y];return}}
  if(u.job==1&&tp.b&&!tp.b.dead&&tp.r){const bs=tp.b,jb=U.filter(o=>o.job==1&&o.team==u.team&&!o.dead),here=jb.filter(o=>Math.hypot(o.x-tp.r[0],o.y-tp.r[1])<420||D(o,bs)<400).length;
   if(here>=jb.length||bs.hp<bs.mhp||tp.w>25){if(D(u,bs)>380&&Math.hypot(u.x-tp.r[0],u.y-tp.r[1])>150){u.tgt=null;u.mv=tp.r;return}u.tgt=bs;u.mv=null;fight(u,bs);return}
   const e=pick(u,260,hh);if(e){u.tgt=e;u.mv=null;fight(u,e)}else{u.tgt=null;u.mv=tp.r}return}
@@ -962,6 +1023,95 @@ function ai0(u,dt){const home=TH[u.team],tp=TP[u.team],dd=botD(u),L=LN[u.tl].L;
  else{fight(u,t);const d=D(u,t);
   if(u.rg>110&&t.k=='hero'){if(dd>.45&&d<u.rg*.5&&u.cd>.25){const l=D(home,u)||1;u.tgt=null;u.mv=[u.x+(home.x-u.x)/l*170,u.y+(home.y-u.y)/l*170]}
    else if(dd>.3&&d<u.rg+20&&u.cd>.35){const sg=(Math.floor(T/1.2)+u.id)%2?1:-1,px=-(t.y-u.y)/(d||1)*sg,py=(t.x-u.x)/(d||1)*sg;u.tgt=null;u.mv=[u.x+px*120,u.y+py*120]}}}}
+function aiSmart(u,dt){
+ const dd=botD(u),hp=u.hp/Math.max(1,u.mhp),home=TH[u.team],L=LN[u.tl].L;
+ const enemies=U.filter(o=>o.k=='hero'&&!o.dead&&o.team!=u.team&&seen(u.team,o.x,o.y)&&D(o,u)<980);
+ const allies=U.filter(o=>o.k=='hero'&&!o.dead&&o.team==u.team&&D(o,u)<800);
+ const tower=U.find(o=>o.k=='tower'&&!o.dead&&o.team!=u.team&&D(o,u)<o.rg+u.rg+50);
+ const nearWave=U.some(o=>o.k=='creep'&&!o.dead&&o.team==u.team&&D(o,u)<440);
+ const dangerous=enemies.filter(o=>D(o,u)<480),power=x=>(x.hp/Math.max(1,x.mhp))*(x.mhp*.32+x.dmg*9),
+  ours=power(u)+allies.reduce((a,o)=>a+power(o),0),theirs=dangerous.reduce((a,o)=>a+power(o),0),adv=ours/Math.max(1,theirs);
+ const escape=(dist=300)=>{
+  // Retreat toward a safe spot on the homeward lane, avoiding straight runs into rocks.
+  const lane=pt(u.tl,u.team,Math.max(110,Math.min(L*.60,fpos(u)-dist)));
+  u.tgt=null;u.mv=lane;u.rec=false;
+ };
+ if(hp<(.19+.08*dd)&&!(u.und>T))u.rec=true;
+ if(u.rec){if(hp>.87)u.rec=false;else{u.tgt=null;u.mv=[home.x,home.y];return}}
+ // Stay alive: avoid dives when the friendly creep wave has not arrived.
+ if(dd>.3&&tower&&!nearWave&&D(u,tower)<tower.rg+150){
+  escape(430);return;
+ }
+ if(dd>.35&&dangerous.length&&(hp<(.31+.13*dd)||adv<(.65+.25*dd))){
+  escape(330);if(u.c[1]<=0&&hp<.48)cast(u,1);return;
+ }
+ // Preserve the strategic orders for base defence, runes and grouped bosses.
+ if(u.job==1||u.job==2||u.job==3){ai0(u,dt);return}
+ // Dedicated healing logic: supports restore health even when nobody is attacking.
+ if(HROLE[u.h]==3){
+  const hurt=allies.some(o=>D(o,u)<410&&o.hp/o.mhp<.63)||hp<.47;
+  if(hurt&&T>(u.helpAt||0)){
+   u.helpAt=T+1.25;
+   const s=HER[u.h].ab;
+   if(u.c[0]<=0&&['heal'].includes(s[0]))cast(u,0);
+   if(u.c[1]<=0&&['shield','ward','bloom','repair'].includes(s[1]))cast(u,1);
+  }
+ }
+ // Stop idling when pathfinding fails, without repeatedly diving enemy towers.
+ u.wt+=dt;if(u.wt>3){const moved=Math.hypot(u.x-u.lx,u.y-u.ly);
+  if(moved<24&&u.tgt&&D(u,u.tgt)>u.rg+60)u.np=null;
+  u.lx=u.x;u.ly=u.y;u.wt=0;
+ }
+ // Opportunistic last hits, especially the crystal-carrying ranged creep.
+ if(dd>.25&&u.cd<.32){
+  const last=U.filter(o=>o.k=='creep'&&!o.dead&&o.team!=u.team&&seen(u.team,o.x,o.y)&&
+   D(o,u)<u.rg+Math.min(115,90*dd)&&o.hp<=u.dmg*(1.02+.07*dd))
+   .sort((a,b)=>(Number(b.ranged)*65-b.hp)-(Number(a.ranged)*65-a.hp))[0];
+  if(last&&(!dangerous.length||adv>1.1)){u.tgt=last;u.mv=null;return}
+ }
+ // Rank-dependent threat selection. Hard bots prefer wounded accessible targets,
+ // supports stay near their allies instead of blindly chasing kills.
+ const support=HROLE[u.h]==3;
+ const targets=enemies.filter(o=>D(o,u)<(u.rg+180+dd*170)&&!(o.inv>0))
+  .map(o=>({o,score:D(u,o)*.53+(o.hp/o.mhp)*220+(support?80:0)
+   +(tower&&D(o,tower)<tower.rg&&!nearWave?260:0)
+   +(o.hp<u.dmg*2?-65*dd:0)})).sort((a,b)=>a.score-b.score);
+ const choice=targets.length?(dd>.45?targets[0].o:enemies[0]):null;
+ if(choice&&(adv>(support?.9:.78)||dd<.21||choice.hp<choice.mhp*.22)){
+  u.tgt=choice;u.mv=null;fight(u,choice);
+  // Controlled kiting: only move between attacks, at most once per 1.1 seconds.
+  if(u.rg>120&&dd>.53&&u.cd>.28&&T>(u.kiteAt||0)&&D(u,choice)<u.rg*.62){
+   const l=D(u,choice)||1,back=105+65*dd;
+   u.tgt=null;u.mv=[u.x+(u.x-choice.x)/l*back,u.y+(u.y-choice.y)/l*back];u.kiteAt=T+1.1;
+  }
+  return;
+ }
+ // A bot on the lane concentrates on farm and pushing while near an enemy wave.
+ const creeps=U.filter(o=>o.k=='creep'&&!o.dead&&o.team!=u.team&&seen(u.team,o.x,o.y)&&D(o,u)<u.rg+165);
+ if(creeps.length){
+  creeps.sort((a,b)=>{
+   const va=(a.hp/Math.max(1,a.mhp))*80+D(u,a)*.25-(a.ranged?12:0),
+         vb=(b.hp/Math.max(1,b.mhp))*80+D(u,b)*.25-(b.ranged?12:0);
+   return va-vb;
+  });u.tgt=creeps[0];u.mv=null;
+  if(creeps.length>=3&&dd>.3)fight(u,creeps[0]);return;
+ }
+ // Defend the lane / siege only behind friendly creeps.
+ const struct=U.filter(o=>(o.k=='tower'||o.k=='throne')&&!o.dead&&o.team!=u.team&&canHit(o)&&D(o,u)<u.rg+200)
+  .sort((a,b)=>D(a,u)-D(b,u))[0];
+ if(struct&&nearWave){u.tgt=struct;u.mv=null;return}
+ // Jungling is deliberate and not attempted while a nearby wave or fight needs help.
+ if(T>95&&!enemies.length&&!nearWave&&farmWant(u)&&hp>.57&&T>(u.farmNext||0)&&jgMove(u,dd,0)){
+  u.farmNext=T+2.2;return;
+ }
+ if(support&&allies.length&&dd>.4){
+  const wounded=allies.filter(o=>o.hp/o.mhp<.62).sort((a,b)=>a.hp/a.mhp-b.hp/b.mhp)[0];
+  if(wounded&&D(wounded,u)>150){u.tgt=null;u.mv=[wounded.x,wounded.y];return}
+ }
+ u.tgt=null;
+ const f=fpos(u),advance=Math.max(L*.15,Math.min(L-330,f>60?f+35+dd*60:L*.35));
+ u.mv=pt(u.tl,u.team,advance);
+}
 function act(u,dt){if(u.chn){chanTick(u,dt);return}if(u.taunt>0&&u.tby&&!u.tby.dead&&canHit(u.tby)){u.tgt=u.tby;u.mv=null}
  if(u.tgt&&(u.tgt.dead||!canHit(u.tgt)||(u.team<2&&!(u.taunt>0&&u.tgt===u.tby)&&!seen(u.team,u.tgt.x,u.tgt.y))))u.tgt=null;
  const sp=u.sp*(u.hs>0?1.3:1)*(u.sl>0?.5:1)*(u.aur>0?1+u.aurv:1)*(u.h==25?1.1:1)*(1+(u.ia?u.ia.sp:0))*(u.tf?u.tf.sp:1)*(u.ts>T?.3:1)*(u.pU>T?.7:1);
@@ -1747,7 +1897,7 @@ function medal(i,st,sz){const id='mg'+(++MID),cal=i<0,c=cal?['#c5cbd6','#69727f'
  let sts='';for(let k=0;k<st;k++)sts+='<polygon points="'+star5(50+(k-(st-1)/2)*15,104,6)+'" fill="#ffd23f" stroke="#7a5a10" stroke-width="1"/>';
  return '<svg width="'+sz+'" height="'+Math.round(sz*1.12)+'" viewBox="0 0 100 112"><defs><linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+c[0]+'"/><stop offset="1" stop-color="'+c[1]+'"/></linearGradient></defs>'+wg+'<polygon points="'+pl(46)+'" fill="url(#'+id+')" stroke="#1b1f27" stroke-width="3" stroke-linejoin="round"/><polygon points="'+pl(38)+'" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2" stroke-linejoin="round"/>'+e+sts+'</svg>'}
 const rankName=()=>{if(PROF.g<CAL)return'Калибровка '+PROF.g+'/'+CAL;const r=rankOf(PROF.mmr);return RANKS[r.i].n+(r.i<7?' '+RN5[r.st-1]:'')},rankMedal=sz=>{if(PROF.g<CAL)return medal(-1,0,sz);const r=rankOf(PROF.mmr);return medal(r.i,r.st,sz)};
-const diffFor=m=>Math.max(0,Math.min(1,.04+.96*Math.min(1,m/6000))),botD=u=>Math.min(1,diffFor(u.rate||PROF.mmr)+(u.team==1?.03:0)),teamD=tm=>{const bs=U.filter(o=>o.k=='hero'&&o.team==tm&&!o.pl&&!o.rm);return bs.length?bs.reduce((a,o)=>a+botD(o),0)/bs.length:DIFF},avgBot=()=>{const bs=U.filter(o=>o.k=='hero'&&!o.pl&&!o.rm);return bs.length?bs.reduce((a,o)=>a+botD(o),0)/bs.length:.25},diffLbl=d=>d<.15?'очень лёгкие':d<.3?'лёгкие':d<.5?'средние':d<.7?'сильные':d<.88?'очень сильные':'мастера',diffLabel=()=>diffLbl(DIFF);
+const diffFor=m=>Math.max(.1,Math.min(.98,.1+.88*(Math.max(0,Math.min(6300,m))/6300))),botD=u=>diffFor(Number.isFinite(u.rate)?u.rate:PROF.mmr),teamD=tm=>{const bs=U.filter(o=>o.k=='hero'&&o.team==tm&&!o.pl&&!o.rm);return bs.length?bs.reduce((a,o)=>a+botD(o),0)/bs.length:DIFF},avgBot=()=>{const bs=U.filter(o=>o.k=='hero'&&!o.pl&&!o.rm);return bs.length?bs.reduce((a,o)=>a+botD(o),0)/bs.length:.25},diffLbl=d=>d<.15?'очень лёгкие':d<.3?'лёгкие':d<.5?'средние':d<.7?'сильные':d<.88?'очень сильные':'мастера',diffLabel=()=>diffLbl(DIFF);
 let DIFF=.25,OPPR=1200;
 const conf=()=>Math.round(Math.max(0,Math.min(1,1-((PROF.rd||350)-60)/290))*100);
 function rankRange(){const a=rankOf(Math.max(0,PROF.mmr-(PROF.rd||350)*.7)),b=rankOf(PROF.mmr+(PROF.rd||350)*.7),nm=r=>RANKS[r.i].n+(r.i<7?' '+RN5[r.st-1]:'');return a.i==b.i&&a.st==b.st?'':nm(a)+' — '+nm(b)}
@@ -1759,9 +1909,15 @@ const BN=['Крот','Вася','Nova','Рейзор','Тень','Лис','Mira'
  DSEQ=[['b',0],['b',1],['b',0],['b',1],['p',0,0],['p',1,0],['p',1,1],['p',0,1],['p',0,2],['p',1,2],['p',1,3],['p',0,3]],
  HPOW=[.55,.6,.65,.7,.55,.5,.65,.55,.6,.7,.6,.65,.55,.6,.6,.65,.7,.75,.5,.55,.6,.65,.6,.55,.65,.7,.65,.7,.6,.6,.7,.7,.58,.7,.65,.63,.58];
 const randn=()=>{let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(6.2832*v)};
-function mkRoster(online,oppN,oppM){const base=online?(PROF.mmr+(oppM||PROF.mmr))/2:PROF.mmr,names=BN.slice().sort(()=>Math.random()-.5);let ni=0;
- const bot=off=>({n:names[ni++%names.length],m:Math.max(0,Math.min(6500,Math.round(base+off+randn()*230))),b:1});
- ROSTER=[[{n:PROF.nick||'Игрок',m:PROF.mmr,b:0,cal:PROF.g<CAL},bot(0),bot(0),bot(0)],[online?{n:oppN||'Соперник',m:oppM||PROF.mmr,b:0,cal:0}:bot(60),bot(60),bot(60),bot(60)]]}
+function mkRoster(online,oppN,oppM){
+ const base=online?(PROF.mmr+(Number.isFinite(oppM)?oppM:PROF.mmr))/2:PROF.mmr;
+ const names=BN.slice().sort(()=>Math.random()-.5),slots=[-95,0,95].sort(()=>Math.random()-.5);
+ let ix=0;const bot=offset=>({n:names[ix++%names.length],m:Math.round(Math.max(0,Math.min(6500,base+offset))),b:1});
+ ROSTER=[
+  [{n:PROF.nick||'Игрок',m:PROF.mmr,b:0,cal:PROF.g<CAL},...slots.map(x=>bot(x))],
+  [online?{n:oppN||'Соперник',m:Number.isFinite(oppM)?oppM:PROF.mmr,b:0,cal:0}:bot(0),...slots.map(x=>bot(x))]
+ ];
+}
 function logKill(t,u,as){const nm=x=>x.k=='hero'?(x.nm||HER[x.h].n):x.k=='tower'?'Башня':x.k=='creep'?'Крип':x.k=='throne'?'Трон':x.k=='jn'?'Нейтрал':'Страж';
  const e={t:Math.round(T),kt:u.team,k:nm(u),kh:u.k=='hero'?u.h:-1,vt:t.team,v:nm(t),vh:t.h,as:as.map(a=>a.nm||HER[a.h].n)};KL.push(e);if(KL.length>200)KL.shift();if(ROLE=='h')evq(2,['k',e.t,e.kt,e.k,e.kh,e.vt,e.v,e.vh,e.as]);feedAdd(e)}
 function feedAdd(e){KF.push({e,end:performance.now()+9000});if(KF.length>6)KF.shift()}
@@ -1840,8 +1996,8 @@ const FAKE=(()=>{let s=20261016;const r=()=>(s=(Math.imul(s,1664525)+1013904223)
 function lbRows(){const real=BOARD.map(r=>Object.assign({},r,{bot:0}));if(PROF.g>=CAL&&!real.some(r=>r.id==devId))real.push({id:devId,nick:PROF.nick,mmr:PROF.mmr,w:PROF.w,l:PROF.l,g:PROF.g,bot:0});return FAKE.concat(real).sort((a,b)=>(b.mmr|0)-(a.mmr|0))}
 function lbHTML(){const all=lbRows(),row=(r,i)=>{const rk=rankOf(r.mmr||0);return '<div class="rr'+(r.id==devId?' cur':'')+'"><b style="width:34px;text-align:center">'+(i+1)+'</b>'+medal(rk.i,rk.st,36)+'<div style="flex:1"><b>'+esc(r.nick||'?')+(r.bot?' 🤖':'')+(r.id==devId?' (вы)':'')+'</b><br><small>'+RANKS[rk.i].n+(rk.i<7?' '+RN5[rk.st-1]:'')+'</small></div><div style="text-align:right"><b>'+(r.mmr|0)+'</b> ММР<br><small>'+(r.w|0)+' П · '+(r.l|0)+' Пор</small></div></div>'};
  let h=all.slice(0,50).map(row).join('');const mi=all.findIndex(r=>r.id==devId);if(mi>=50)h+='<div style="text-align:center;opacity:.6">···</div>'+row(all[mi],mi);return h}
-function rankBlock(sz){const cal=PROF.g<CAL,r=rankOf(PROF.mmr),rg=cal?'':rankRange(),cf=conf(),sub=cal?'Идёт калибровка: осталось '+(CAL-PROF.g)+' игр, после неё станет ясен ранг':PROF.mmr+' ММР'+(r.i<7?' · до следующей звезды '+r.next:'');
- return '<div class="prof"><div>'+rankMedal(sz)+'</div><div style="flex:1">'+(PROF.nick?'<div class="nk">'+esc(PROF.nick)+'</div>':'')+'<div class="rn">'+rankName()+'</div><div>'+sub+'</div><div class="pr"><i style="width:'+Math.round((cal?PROF.g/CAL:r.prog)*100)+'%"></i></div>'+(cal?'':'<small>Уверенность в ранге: <b>'+cf+'%</b>'+(rg&&cf<85?' · вероятный диапазон: '+rg:'')+'</small><div class="pr" style="height:4px;margin:3px 0 5px"><i style="width:'+cf+'%;background:#7fe39a"></i></div>')+'<small>Победы '+PROF.w+' · Поражения '+PROF.l+(!cal&&PROF.peak>PROF.mmr?' · пик '+PROF.peak:'')+'</small></div></div>'}
+function rankBlock(sz){const cal=PROF.g<CAL,r=rankOf(PROF.mmr),rg=cal?'':rankRange(),cf=conf(),sub=cal?'Идёт калибровка: осталось '+(CAL-PROF.g)+' игр (рейтинг пока скрыт)':PROF.mmr+' ММР'+(r.i<7?' · до следующей звезды '+r.next:'');
+ return '<div class="prof"><div>'+rankMedal(sz)+'</div><div style="flex:1">'+(PROF.nick?'<div class="nk">'+esc(PROF.nick)+'</div>':'')+'<div class="rn">'+rankName()+'</div><div>'+sub+'</div><div class="pr"><i style="width:'+Math.round((cal?PROF.g/CAL:r.prog)*100)+'%"></i></div>'+(cal?'':'<small>Оценочная уверенность: <b>'+cf+'%</b>'+(rg&&cf<85?' · вероятный диапазон: '+rg:'')+'</small><div class="pr" style="height:4px;margin:3px 0 5px"><i style="width:'+cf+'%;background:#7fe39a"></i></div>')+'<small>Победы '+PROF.w+' · Поражения '+PROF.l+(!cal&&PROF.peak>PROF.mmr?' · пик '+PROF.peak:'')+'</small></div></div>'}
 function portrait(i,sz,sk){sk=sk|0;const k=i+'_'+sz+'_'+sk;if(PORT[k])return PORT[k];const c=document.createElement('canvas');c.width=c.height=sz*2;const x=c.getContext('2d'),old=g;g=x;x.scale(sz*2/70,sz*2/70);try{drawHero({h:i,sk,x:35,y:38,r:16,team:0,fa:-.6,lvl:1,hp:1,mhp:1,noUI:1,sh:0,inv:0,pl:0})}catch(e){}g=old;return PORT[k]='<img width="'+sz+'" height="'+sz+'" src="'+c.toDataURL()+'">'}
 const EV=[{need:150,h:0,k:1},{need:600,h:6,k:1},{need:1500,h:27,k:1}],lvNeed=l=>40+3*l,
 MEDAL=[{n:'Бронзовая медаль',rim:'#8a4f1d',face:'#d8975a',hi:'#ffe0b8',gem:'#ffb27a'},{n:'Серебряная медаль',rim:'#6f7b8c',face:'#cfd8e4',hi:'#ffffff',gem:'#a8d4ff'},{n:'Золотая медаль',rim:'#a87a0c',face:'#ffd45a',hi:'#fff5c0',gem:'#ff8a3d'},{n:'Платиновая медаль',rim:'#2f8fa6',face:'#bff3ff',hi:'#ffffff',gem:'#5aa2ff'},{n:'Кристальная медаль',rim:'#5a3bd6',face:'#c8b8ff',hi:'#ffffff',gem:'#7fffe9'}],
@@ -1923,8 +2079,30 @@ function histHTML(){const n=HIST.length,w=HIST.filter(x=>x.res==1).length,gm={};
  return '<div class="box" style="max-width:880px"><h1>📜 История матчей</h1>'+sum+(list||'<div class="note">Пока нет сыгранных матчей. После первой игры здесь появится статистика.</div>')+'<div class="mb"><button class="btn big" onclick="ov(\'menu\')">Назад</button>'+(n?'<button class="btn" onclick="histClear()">'+(histClr?'Точно очистить?':'Очистить')+'</button>':'')+'</div><div style="text-align:center;opacity:.6;font-size:12px">Хранятся последние 30 матчей. Нажмите на матч, чтобы увидеть всех игроков.</div></div>'}
 function histToggle(i){histOpen=histOpen==i?-1:i;ov('hist')}
 function histClear(){if(!histClr){histClr=1;ov('hist');return}HIST=[];saveHist();histClr=0;histOpen=-1;ov('hist')}
-function endMatch(won,left){if(ended)return null;ended=true;const cal=PROF.g<CAL,rd=PROF.rd||350,kd=(P.kc||0)-(P.dc||0),E=1/(1+Math.pow(10,((OPPR||PROF.mmr)-PROF.mmr)/400)),K=50+(rd-60)/290*150,perf=Math.max(-.2,Math.min(.2,kd*.02));
- let d=K*((won?1:0)-E)*(won?1+perf:1-perf);if(left)d=-K*.6;d=Math.round(d);const old=PROF.mmr;PROF.mmr=Math.max(0,Math.min(9999,PROF.mmr+d));PROF.g++;won?PROF.w++:PROF.l++;PROF.rd=Math.max(60,rd*(cal?.88:.965));PROF.peak=Math.max(PROF.peak||0,PROF.mmr);RW=giveReward(won,left);saveProf();pushBoard();histAdd(won,left,old,d,cal);return{d,old,nw:PROF.mmr,cal,done:cal&&PROF.g>=CAL,K:Math.round(K)}}
+function ratingChange(won,left,mode,own,other,played,rd){
+ const placement=played<CAL,online=mode!=='s';
+ // Expected outcome against the opposing human, or 50% against matched AI.
+ const gap=Math.max(-850,Math.min(850,(online?other:own)-own));
+ const expected=1/(1+Math.pow(10,gap/480));
+ // 10 calibration games change estimates faster; playing bots has lower rating weight.
+ const k=online?(placement?Math.max(60,92-played*3.4):48):
+  (placement?Math.max(33,43-played):29);
+ const raw=k*((won?1:0)-expected),delta=left?-(online?30:17):Math.round(raw);
+ return{delta:Math.max(-70,Math.min(70,delta)),expected,placement,k,online};
+}
+function endMatch(won,left){
+ if(ended)return null;ended=true;
+ const old=PROF.mmr,cal=PROF.g<CAL;
+ const v=ratingChange(won,left,ROLE,PROF.mmr,Number.isFinite(OPPR)?OPPR:PROF.mmr,PROF.g,PROF.rd||350);
+ const d=v.delta;
+ PROF.mmr=Math.max(0,Math.min(9999,PROF.mmr+d));PROF.g++;
+ won?PROF.w++:PROF.l++;
+ PROF.rd=Math.max(70,(PROF.rd||350)*(cal?.86:.99));
+ PROF.peak=Math.max(PROF.peak||0,PROF.mmr);
+ PROF.ratingVer='0.1.1';
+ RW=giveReward(won,left);saveProf();pushBoard();histAdd(won,left,old,d,cal);
+ return{d,old,nw:PROF.mmr,cal,done:cal&&PROF.g>=CAL,K:Math.round(v.k)};
+}
 const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let BOARD=[],boardErr='Подключение к серверу…',devId='';
 try{devId=localStorage.getItem('miniMoba.dev')||'';if(!devId){devId='d'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);localStorage.setItem('miniMoba.dev',devId)}}catch(e){devId='d'+Math.random().toString(36).slice(2,12)}
@@ -1936,8 +2114,8 @@ async function saveNick(){const inp=$('nk'),m=$('nkmsg'),v=((inp&&inp.value)||''
 netConnect();
 function resetProf(){HIST=[];saveHist();PROF={mmr:1200,g:0,w:0,l:0,last:0,rd:350,peak:1200,nick:PROF.nick,sk:PROF.sk,coins:PROF.coins,lv:PROF.lv,xp:PROF.xp,md:PROF.md};saveProf();pushBoard();ov('menu')}
 function ov(mode){const o=$('ov');o.hidden=false;$('shop').hidden=true;ovMode=mode;run=false;let h='';if(ROLE!='s'&&mode!='pause'&&mode!=2&&mode!='lost')netCleanup();
- if(mode=='menu')h='<div class="box mn"><div class="crest">💎</div><h1 class="ttl">КРИСТАЛЬНЫЕ СТРАЖИ</h1><div style="text-align:center;opacity:.7">Онлайн 1×1 + драфт · 37 героев · три линии</div>'+rankBlock(96)+profStrip()+'<div class="mb"><button class="btn big play" onclick="ov(\'pick\')">▶ Начать игру</button><button class="btn" onclick="ov(\'board\');loadBoard()">🏆 Таблица лидеров</button></div><div class="mb"><button class="btn" onclick="ov(\'ranks\')">Ранги</button><button class="btn" onclick="ov(\'patch\')">📝 Патч 0.1.0</button><button class="btn" onclick="ov(\'hist\')">📜 История матчей</button><button class="btn" onclick="ov(\'inv\')">🎒 Инвентарь</button><button class="btn" onclick="ov(\'ev\')">🪙 Золотой сезон</button><button class="btn" onclick="ov(\'help\')">Как играть</button><button class="btn" onclick="ov(\'nick\')">✎ Сменить ник</button></div><div style="text-align:center;margin-top:12px;font-size:12px;opacity:.65">Прогресс хранится на этом устройстве, таблица лидеров — на игровом сервере.<br><button class="btn" style="margin-top:8px" onclick="resetProf()">Сбросить прогресс</button></div></div>';
- else if(mode=='patch')h='<div class="box" style="max-width:760px"><h1>📝 Патч 0.1.0 · Новая эпоха</h1><p><b>🆕 Пять героев:</b> Рунный кузнец (танк), Лунная охотница (стрелок), Драконорождённый (боец), Плетельщица снов (маг), Механик (поддержка). У всех свои Q / E / R и пассивные навыки с 20 уровня.</p><p><b>🛍️ 18 новых предметов:</b> кодекс, кираса, плащ, колчан, глефа, часы, щит, сердце, жезл, коготь, кольцо, печать, древо, прицел, молот осады, амулет, сфера бездны и броня последнего шанса. Все имеют реальные бонусы в бою.</p><p><b>⭐ Новые сборки:</b> персональные рекомендации для 37 героев, с доступным ранним предметом и двумя сильными поздними улучшениями. В магазине есть фильтры по стилю игры.</p><p><b>🗺️ Карта:</b> сохранены узкие тропы, каменные препятствия в лесу и чистая река из 0.0.8.</p><p><b>🌐 Онлайн:</b> сервер теперь принимает все 37 героев — обязательно обновите index.html и server.js одновременно.</p><div class="mb"><button class="btn big" onclick="ov(\'menu\')">Назад</button></div></div>';
+ if(mode=='menu')h='<div class="box mn"><div class="crest">💎</div><h1 class="ttl">КРИСТАЛЬНЫЕ СТРАЖИ</h1><div style="text-align:center;opacity:.7">Онлайн 1×1 + драфт · 37 героев · три линии</div>'+rankBlock(96)+profStrip()+'<div class="mb"><button class="btn big play" onclick="ov(\'pick\')">▶ Начать игру</button><button class="btn" onclick="ov(\'board\');loadBoard()">🏆 Таблица лидеров</button></div><div class="mb"><button class="btn" onclick="ov(\'ranks\')">Ранги</button><button class="btn" onclick="ov(\'patch\')">📝 Патч 0.1.1</button><button class="btn" onclick="ov(\'hist\')">📜 История матчей</button><button class="btn" onclick="ov(\'inv\')">🎒 Инвентарь</button><button class="btn" onclick="ov(\'ev\')">🪙 Золотой сезон</button><button class="btn" onclick="ov(\'help\')">Как играть</button><button class="btn" onclick="ov(\'nick\')">✎ Сменить ник</button></div><div style="text-align:center;margin-top:12px;font-size:12px;opacity:.65">Прогресс хранится на этом устройстве, таблица лидеров — на игровом сервере.<br><button class="btn" style="margin-top:8px" onclick="resetProf()">Сбросить прогресс</button></div></div>';
+ else if(mode=='patch')h='<div class="box" style="max-width:760px"><h1>📝 Патч 0.1.1 · Умные союзники</h1><p><b>🏆 Рейтинг:</b> 10 калибровочных игр. За победу / поражение меняется ММР с поправкой на силу реального соперника. KDA больше не влияет. Матчи против ботов имеют меньший вес. Старые достижения и MMR сохранены.</p><p><b>🤖 ИИ:</b> боты добивают крипов (в том числе дальников с кристаллами), избегают опасных вышек без своей волны, отступают при невыгодном бою, выбирают слабых врагов, держат дистанцию, используют способности осмысленнее и помогают защитить строения.</p><p><b>⚔️ Команды:</b> больше не бросают все линии ради Стража и Титана. Боссы требуют подходящего момента, а пуши и защита башен зависят от ситуации. С ростом ранга улучшаются тактика и реакция, а не характеристики.</p><p><b>💎 Сохранено:</b> 37 героев, 41 предмет, узкие лесные тропинки, чистая река, сетевые комнаты, драфт и магазин.</p><div class="mb"><button class="btn big" onclick="ov(&#39;menu&#39;)">Назад</button></div></div>';
  else if(mode=='nick')h='<div class="box" style="max-width:460px;text-align:center"><h1>'+(PROF.nick?'Смена ника':'Регистрация')+'</h1><p>'+(PROF.nick?'Введите новый ник':'Придумайте никнейм — он будет виден в таблице лидеров')+'</p><input id="nk" maxlength="16" placeholder="Никнейм (2–16 символов)" value="'+esc(PROF.nick||'')+'" onkeydown="if(event.key==\'Enter\')saveNick()"><div id="nkmsg" class="note" style="display:none"></div><div class="mb"><button class="btn big" onclick="saveNick()">Сохранить</button>'+(PROF.nick?'<button class="btn" onclick="ov(\'menu\')">Отмена</button>':'')+'</div><small style="opacity:.65">Буквы, цифры, пробел, _ и -. В таблице ник уникален.</small></div>';
  else if(mode=='ev')h=evHTML();
   else if(mode=='inv')h=invHTML();
@@ -1947,14 +2125,14 @@ function ov(mode){const o=$('ov');o.hidden=false;$('shop').hidden=true;ovMode=mo
  else if(mode=='pick'){selH=Math.min(PROF.last||0,HER.length-1);h='<div class="box"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h1 style="margin:0;text-align:left">Выбор героя</h1><div class="rkm">'+rankMedal(36)+'<span>'+rankName()+'</span></div></div><div class="pk"><div>'+
   [0,1,2,3].map(c=>'<div class="cat"><i style="background:'+ACL[c]+'"></i><span style="color:'+ACL[c]+'">'+ATN[c].toUpperCase()+'</span></div><div class="tiles">'+HER.map((H,i)=>HAT[i]==c?'<div class="tile" data-i="'+i+'" style="--c:'+ACL[c]+'" onclick="pickSel('+i+')">'+portrait(i,56)+H.n+'<br><small style="color:'+RCOL[HROLE[i]]+'">'+RNAME[HROLE[i]]+'</small></div>':'').join('')+'</div>').join('')+
   '<div style="margin-top:12px"><button class="btn" onclick="pickSel(Math.floor(Math.random()*HER.length))">🎲 Случайный герой</button></div></div><div><div id="hdet"></div><div class="mb"><button class="btn big" onclick="startDraft(false)">Против ботов: драфт</button><button class="btn big" style="background:linear-gradient(#e08a2f,#b05a10);border-color:#ffb066" onclick="startSearch()">🔎 Найти игрока 1×1</button><button class="btn" onclick="startInvite()">🔗 Создать комнату</button><button class="btn" onclick="joinFriendFromLink()">🔑 Войти по коду</button><button class="btn" onclick="ov(\'menu\')">Назад</button></div></div></div></div>'}
- else if(mode=='ranks'){const cur=PROF.g<CAL?-1:rankOf(PROF.mmr).i;h='<div class="box"><h1>Ранги</h1><div style="text-align:center;opacity:.75;margin-bottom:8px">Рейтинг считается как в Доте: первые 10 игр идёт калибровка, ранг скрыт, а изменения большие. С каждой игрой растёт уверенность в ранге, и победа или поражение сдвигают ММР всё меньше (около ±25). Чем выше ранг, тем умнее и сильнее боты. Каждый ранг делится на 5 звёзд.</div>'+RANKS.map((r,i)=>'<div class="rr'+(i==cur?' cur':'')+'">'+medal(i,i<7?3:0,56)+'<div><b style="font-size:17px">'+r.n+'</b><br><small>'+(i<7?r.min+' – '+(RANKS[i+1].min-1)+' ММР':r.min+'+ ММР')+' · боты: '+diffLbl(diffFor(i<7?(r.min+RANKS[i+1].min)/2:r.min+300))+'</small></div></div>').join('')+'<div class="mb"><button class="btn" onclick="ov(\'menu\')">Назад</button></div></div>'}
+ else if(mode=='ranks'){const cur=PROF.g<CAL?-1:rankOf(PROF.mmr).i;h='<div class="box"><h1>Ранги</h1><div style="text-align:center;opacity:.75;margin-bottom:8px">Калибровка — 10 игр со скрытым рейтингом. После неё обычные матчи дают около ±24 ММР в онлайне, против ботов — около ±15. За сильного соперника дают больше, за слабого меньше. KDA не влияет на ММР: саппорты и керри равны. Боты не получают бонусного опыта — высокий ранг усиливает их решения, координацию и реакцию. Каждый ранг делится на 5 звёзд.</div>'+RANKS.map((r,i)=>'<div class="rr'+(i==cur?' cur':'')+'">'+medal(i,i<7?3:0,56)+'<div><b style="font-size:17px">'+r.n+'</b><br><small>'+(i<7?r.min+' – '+(RANKS[i+1].min-1)+' ММР':r.min+'+ ММР')+' · боты: '+diffLbl(diffFor(i<7?(r.min+RANKS[i+1].min)/2:r.min+300))+'</small></div></div>').join('')+'<div class="mb"><button class="btn" onclick="ov(\'menu\')">Назад</button></div></div>'}
  else if(mode=='help')h='<div class="box"><h1>Как играть</h1><p>Играйте против ботов либо создайте комнату и пришлите другу ссылку. Онлайн работает при запущенном игровом сервере. Перед матчем идёт драфт: по 2 бана на команду, потом пики, на каждый ваш ход даётся 60 секунд. В команде нужен один герой каждой из 4 ролей: танк, урон, контроль, поддержка. Рейтинги ботов и счёт убийств, смертей и помощи видны на табло в матче (кнопка 👥 или Tab), там же вкладка «Убийства»; последние убийства показываются справа сверху. Цель — разрушить трон врага. Три линии, у каждой по 3 башни; башня получает урон, только когда вражеские крипы зашли в её зону, а дальние башни бьют сильнее.</p><p><b>Управление:</b> клик или тап — идти, клик по врагу — атака, Q / E / R — способности (R с 10 уровня), пассив с 20 уровня. Колесо, ＋/− и стрелки — камера, Пробел — вернуть камеру на героя, Esc — меню. Клик по миникарте — перейти туда.</p><p>Лес: в каждом секторе четыре лагеря — малый, два средних, большой; между ними узкие тропинки. За добивание дальних крипов дают 1 кристалл. Счёт и таймеры возрождения героев — в верхней панели, а события показывают время при наведении. Руны: опыт у реки каждые 2 минуты; на 1, 3 и 5 минутах на аренах в углах — регенерация и урон ×2. Древний Страж (+3 уровня команде) на 10-й минуте и один раз через 5 минут после убийства; на 20-й минуте просыпается Титан арены и возрождается каждые 5 минут — за него идут усиленные стражи-крипы. Туман войны скрывает врагов вне вашего обзора. Если команда отстаёт по опыту, награда за убийства растёт.</p><div class="mb"><button class="btn" onclick="ov(\'menu\')">Назад</button></div></div>';
  else if(mode=='join')h='<div class="box" style="max-width:470px;text-align:center"><h1>🔑 Комната друга</h1><p>Введите код из 6 символов или откройте ссылку-приглашение.</p><input id="friendCode" maxlength="6" placeholder="Код комнаты" value="'+esc(inviteFromUrl.toUpperCase().slice(0,6))+'" onkeydown="if(event.key===\'Enter\')joinFriend()"><div id="joinError" class="note" style="min-height:1px"></div><div class="mb"><button class="btn big" onclick="joinFriend()">Подключиться</button><button class="btn" onclick="ov(\'pick\')">Назад</button></div></div>';
  else if(mode=='search'){const el=MM?Math.floor((Date.now()-(MM.t0||Date.now()))/1000):0,o2=MM&&MM.opp;
   h='<div class="box" style="max-width:480px;text-align:center"><h1>'+(MM?.mode==='create'?'Комната для друга':MM?.mode==='join'?'Подключение к другу':'Поиск игры 1×1')+'</h1>'+(MM?.code?'<p>Код комнаты</p><h1 style="font-size:42px;letter-spacing:7px">'+esc(MM.code)+'</h1><p>Пригласите друга по ссылке. Комната рассчитана на двух игроков.</p><div class="mb"><button id="inviteCopy" class="btn big" onclick="copyInvite()">📋 Скопировать ссылку</button></div>':'')+(MM&&MM.st=='err'?'<div class="note">'+esc(MM.msg)+'</div>':(o2&&o2.nick?'<div class="prof" style="justify-content:center"><div><div style="opacity:.7">Соперник найден</div><div class="rn">'+esc(o2.nick)+'</div><div>'+(o2.mmr!=null?rl(o2.mmr)+' · '+o2.mmr+' ММР':'')+'</div></div></div><p>Вы играете за <b>'+(MM.role=='h'?'Radiant':MM.role=='g'?'Dire':'одну из сторон')+'</b>, соперник — за другую. В каждой команде ещё по 3 бота.</p><p style="opacity:.8">'+(MM.st=='join'?'Подключаемся к матчу…':'Подтверждаем матч…')+'</p>':'<p style="font-size:18px">⌛ '+(MM?.mode==='create'?'Ожидаем друга…':MM?.mode==='join'?'Входим в комнату…':'Ищем соперника…')+'  <b>'+Math.floor(el/60)+':'+String(el%60).padStart(2,'0')+'</b></p><p style="opacity:.7">Вы и соперник встанете на разные стороны, остальные 3 места в каждой команде займут боты.</p>'+(el>30?'<div class="note">Соперника пока нет. Можно подождать или сыграть против ботов.</div>':'')))+'<div class="mb">'+(MM&&MM.st=='err'?'':'<button class="btn" onclick="cancelSearch()">Отмена</button>')+(MM&&MM.st=='err'?'<button class="btn" onclick="ov(\'pick\')">Назад</button>':'')+(el>30&&MM&&MM.st=='search'&&MM.mode==='queue'&&!(MM.opp&&MM.opp.nick)?'<button class="btn big" onclick="cancelSearch(1);start(selH)">Играть против ботов</button>':'')+'</div></div>'}
  else if(mode=='lost')h='<div class="box" style="max-width:440px;text-align:center"><h1>Связь потеряна</h1><p>Матч прерван, ММР не изменён.</p><div class="mb"><button class="btn big" onclick="ov(\'menu\')">В меню</button></div></div>';
  else if(mode=='draft')h=drHTML();
- else if(mode=='pause')h='<div class="box" style="text-align:center;max-width:420px"><h1>Пауза</h1><div class="mb" style="flex-direction:column"><button class="btn big" onclick="resume()">Продолжить</button><button class="btn" onclick="leaveGame()">Покинуть матч (поражение, −30 ММР)</button></div></div>';
+ else if(mode=='pause')h='<div class="box" style="text-align:center;max-width:420px"><h1>Пауза</h1><div class="mb" style="flex-direction:column"><button class="btn big" onclick="resume()">Продолжить</button><button class="btn" onclick="leaveGame()">Покинуть матч (штраф ММР)</button></div></div>';
  else{const won=win==VT,r=endMatch(won,false),st=r?(r.cal&&!r.done?'Калибровочная игра '+PROF.g+'/'+CAL:(r.done?'Калибровка завершена!':'')):'',mp=mvpPick();
   h='<div class="box" style="max-width:980px"><div style="text-align:center"><h1 style="color:'+(won?'#7fe39a':'#ff7a7a')+'">'+(won?'Победа!':'Поражение')+'</h1><div>'+(won?'Трон '+TN[1-VT]+' уничтожен':'Трон '+TN[VT]+' разрушен')+' · время '+$('tm').textContent+'</div></div>'+
   '<div class="rsw"><div>'+(r?rankBlock(72)+'<div>'+(r.cal&&!r.done?'ММР скрыт до конца калибровки':'ММР: '+r.old+' → '+r.nw+' ('+(r.d>=0?'+':'')+r.d+')')+(st?'<br><b>'+st+'</b>':'')+'</div><div style="opacity:.75;margin-top:4px"><small>Боты в этом матче: '+diffLabel()+'</small></div>':'')+'</div><div>'+mvpCard(mp)+'</div></div>'+awardsHTML(mp.rows)+rewardHTML()+statsHTML(mp)+

@@ -211,6 +211,16 @@ button.on{border-color:var(--ac);color:var(--ac)}
 .loot-result{text-align:center!important;max-width:570px!important;border-color:var(--rc)!important;box-shadow:0 10px 65px color-mix(in srgb,var(--rc) 28%,transparent)!important}.loot-result-stars{letter-spacing:18px;color:var(--rc);font-size:26px;animation:lootGlint 1.8s ease-in-out infinite}.loot-result-title{font-size:20px;letter-spacing:5px;font-weight:900;text-shadow:0 0 24px currentColor}.loot-result-art{margin:12px auto;padding:10px;width:fit-content;background:radial-gradient(circle,#27344b,#11182d 70%);border:2px solid var(--rc);border-radius:19px;box-shadow:0 0 42px color-mix(in srgb,var(--rc) 35%,transparent)}.loot-result-art canvas{width:min(250px,55vw);height:min(250px,55vw);display:block}.loot-result h2{font-size:24px;margin:7px 0}.loot-result p{color:#b7d0e3}
 @keyframes chestFloat{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-8px) rotate(3deg)}}@keyframes lootGlint{50%{filter:drop-shadow(0 0 17px var(--rc));transform:scale(1.08)}}
 @media(max-width:650px){.loot-hero{gap:10px;padding:10px}.loot-chest{min-width:68px;font-size:60px}.loot-details>b{font-size:18px}.loot-rates{grid-template-columns:repeat(2,1fr)}.loot-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* New collection selector: each chest has its own 11 reward previews. */
+.loot-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}
+.loot-option{display:flex;gap:10px;align-items:center;text-align:left;border-radius:13px;border:1px solid #40526b;background:linear-gradient(145deg,#202a3a,#111926);color:#e4eefc;padding:12px;cursor:pointer;min-width:0;transition:transform .15s,border-color .15s,box-shadow .15s}
+.loot-option:hover{transform:translateY(-2px);border-color:var(--accent)}
+.loot-option.selected{border:2px solid var(--accent);padding:11px;box-shadow:0 0 24px color-mix(in srgb,var(--accent) 22%,transparent);background:linear-gradient(140deg,#293450,#141b2a)}
+.loot-option-icon{font-size:34px;line-height:1.2;flex:none}.loot-option-body{display:flex;min-width:0;flex-direction:column;gap:5px}.loot-option-body strong{font-size:14px;color:var(--accent)}.loot-option-body small{font-size:11px;line-height:1.3;color:#c5d1e4}.loot-option-body em{font-size:11px;font-style:normal;color:#94ebd9}
+.loot-hero{border-color:var(--chest-color,#8ab5ee77);box-shadow:inset 0 0 45px color-mix(in srgb,var(--chest-color,#628eff) 13%,transparent)}
+.loot-details>b{color:var(--chest-color,#ffdf91)}
+@media(max-width:720px){.loot-options{grid-template-columns:1fr;gap:7px}.loot-option{padding:8px 10px}.loot-option.selected{padding:7px 9px}.loot-option-icon{font-size:28px}.loot-option-body{gap:2px}}
 </style></head><body>
 <div id="top"><b id="tm">0:00</b><b id="cry" title="Кристаллы · B — магазин">💎 0</b><div id="netPing" class="ping-indicator offline" title="Нет соединения с игровым сервером" role="status" aria-live="off"><i class="ping-dot"></i><span id="pingValue">Пинг: —</span></div><span id="clientVersion" title="Версия игрового клиента" style="font-size:11px;opacity:.75;white-space:nowrap">v0.1.2</span><span class="net-fps" id="netFps" title="Частота кадров и частота получения сетевых обновлений">FPS: — · Сеть: —</span><span id="rk"></span><span><button id="zo">−</button><button id="zi">＋</button><button id="lk" class="on" title="Камера на герое (Пробел)">🎯</button><button id="mu" title="Звук">🔊</button><button id="pm" title="Меню (Esc)">☰</button><button id="shp" title="Магазин (B)">🛒</button><button id="sbb" title="Игроки (Tab)">👥</button></span><span><button data-s="1" class="on">×1</button><button data-s="3">×3</button><button data-s="8">×8</button></span></div>
 <div id="stage"><canvas id="c"></canvas><div id="matchScore" aria-label="Счёт матча и возрождение героев"></div><div id="multiKillBanner" aria-live="polite"></div><div id="eventTrack" aria-label="События матча">
@@ -751,7 +761,7 @@ function sumAI(u,dt){u.ttl-=dt;if(u.ttl<=0||(u.own&&u.own.dead&&u.sp>0)){u.dead=
  u.th-=dt;if(!u.tgt||u.tgt.dead||!canHit(u.tgt)||D(u,u.tgt)>(u.sp?520:u.rg+60)){u.tgt=null;if(u.th<=0){u.th=.3;let b=null,bs=1e9;const R2=u.sp?400:u.rg+30;for(const o of U){if(o.dead||o.team==u.team||o.k=='jn'||o.k=='neu'||!canHit(o)||!seen(u.team,o.x,o.y))continue;const d=D(u,o)-o.r-(o.k=='hero'?60:0);if(d<R2&&d<bs){bs=d;b=o}}u.tgt=b}}
  const t=u.tgt;if(t){if(D(u,t)-t.r<=u.rg)atk(u,t);else if(u.sp>0)mvTo(u,t.x,t.y,u.sp*(u.sl>0?.5:1)*dt)}else if(u.sp>0&&u.own){const d=D(u,u.own);if(d>180)mvTo(u,u.own.x+Math.cos(u.id)*70,u.own.y+Math.sin(u.id)*70,u.sp*dt)}}
 const ZC={buff:'#ffd23f',pull:'#9b7bff',time:'#9fd8ff',dome:'#bfe6ff',trap:'#ff6a5a',frost:'#bfeaff',dark:'#6a4bd6',drain:'#d0243a',boom:'#ff7a2a',lineboom:'#c8873a',rally:'#ffd98a'};
-function zone(k,o,x,y,r,ttl,v,ex){const z=Object.assign({k,x,y,r,t0:T,ttl,team:o.team,own:o,v:v||{},nx:0},ex||{});ZN.push(z);if(ROLE=='h')evq(2,['z',k,Math.round(x),Math.round(y),Math.round(r),+ttl.toFixed(2),Math.round(z.x2||0),Math.round(z.y2||0),z.w||0,Math.round(z.r1||0)]);return z}
+function zone(k,o,x,y,r,ttl,v,ex){const z=Object.assign({k,x,y,r,t0:T,ttl,team:o.team,own:o,v:v||{},nx:0},ex||{});if(k==='frost'){z.r0=Number.isFinite(z.r0)?z.r0:r;z.r1=Number.isFinite(z.r1)?z.r1:z.r0;if(!z.ex||typeof z.ex!=='object')z.ex={}}ZN.push(z);if(ROLE=='h')evq(2,['z',k,Math.round(x),Math.round(y),Math.round(r),+ttl.toFixed(2),Math.round(z.x2||0),Math.round(z.y2||0),z.w||0,Math.round(z.r1||0)]);return z}
 const isE=(z,o)=>!o.dead&&o.team!=z.team&&(o.k=='hero'||o.k=='creep'||o.k=='sum');
 function zoneTick(dt){if(!ZN.length)return;for(let i=ZN.length-1;i>=0;i--){const z=ZN[i];if(z.vis)continue;const age=T-z.t0;if(age>=z.ttl||z.dead){if(z.end)try{z.end(z)}catch(e){}ZN.splice(i,1);continue}
   z.nx-=dt;const tick=z.nx<=0;if(tick)z.nx+=.5;const own=z.own,k=z.k;if(k=='frost')z.r=z.r0+(z.r1-z.r0)*Math.min(1,age/(z.ttl*.7));const inn=o=>Math.hypot(o.x-z.x,o.y-z.y)<z.r+o.r;
@@ -923,7 +933,7 @@ function cast(u,i){if(!u||u.dead||u.st>0||u.sil>0||u.chn||u.pU>T||u.c[i]>0||(i==
  case'scalemail':{u.arm=Math.max(u.arm,3.5);u.sh=Math.max(u.sh,u.mhp*.25);u.sht=Math.max(u.sht||0,4);ring(u.x,u.y,90);break}
  case'dragonflame':{const l=en(u.x,u.y,320);if(!l.length)ok=0;l.forEach(o=>{dmg(u,o,m*3.3*E);o.bn=Math.max(o.bn||0,5);o.bd=Math.max(o.bd||0,m*.35*E);o.bsrc=u});ring(u.x,u.y,320);aura(u,'#ff8a42',1.5);break}
  case'dreamdart':{const t=tg();if(!t)ok=0;else{dmg(u,t,m*2);t.sl=Math.max(t.sl,2.5);fxp({a:u,b:t,t:.3});ring(t.x,t.y,65)}break}
- case'mistveil':{const t=tg(),cx=t?t.x:u.x,cy=t?t.y:u.y;zone('frost',u,cx,cy,180,4*X,{d:m*.25});ring(cx,cy,180);break}
+ case'mistveil':{const t=tg(),cx=t?t.x:u.x,cy=t?t.y:u.y;zone('frost',u,cx,cy,180,4*X,{d:m*.25},{r0:180,r1:180,ex:{}});ring(cx,cy,180);break}
  case'nightmare':{const cx=u.x,cy=u.y;en(cx,cy,370).forEach(o=>{dmg(u,o,m*1.5*E);o.sil=Math.max(o.sil,1.5*X)});zone('dark',u,cx,cy,370,5*X,{d:m*.26*E});ring(cx,cy,370);break}
  case'rivets':{const t=pick(u,u.rg+160);if(!t)ok=0;else{dmg(u,t,m*2);t.weak=Math.max(t.weak||0,3);t.weakv=.2;fxp({a:u,b:t,t:.18})}break}
  case'repair':{al(360).forEach(o=>{healTo(u,o,o.mhp*.20);o.sh=Math.max(o.sh,o.mhp*.16);o.sht=Math.max(o.sht||0,5)});ring(u.x,u.y,360);break}
@@ -1422,6 +1432,37 @@ const SKIN={
  36:[{n:'Часовой механизма',c:'#5c547a',a:'#ffd596',fx:'gears',r:'Редкий',d:'Механик в латунном экзокостюме с вращающимися шестернями и искрами.'}],
  3:[{n:'АРКАНА: Пожиратель измерений',c:'#111634',a:'#7ffff0',fx:'voidArcana',r:'Аркана',d:'Облик за пределами реальности: призрачные крылья, корона разлома, орбиты клинков и поток бирюзовой энергии. Уникальные анимации и силуэт.'}]
 };
+// Two additional collections. Existing SKIN entries and indexes stay unchanged.
+const CHESTS=[
+ {id:0,n:'Сундук двух королевств',icon:'🎁',desc:'Герои Radiant и Dire, стражи и древняя магия.',color:'#e7bf75'},
+ {id:1,n:'Астральный разлом',icon:'🌌',desc:'Созвездия, звёздная пыль и забытые сны.',color:'#a8b3ff'},
+ {id:2,n:'Пепельная династия',icon:'🔥',desc:'Древние империи, драконы, вулканы и запретное пламя.',color:'#ffb477'}
+];
+const SKIN_ADDITIONS=[
+ {h:35,box:1,skin:{n:"Ловец созвездий",c:"#32275c",a:"#b7a4ff",fx:"starfield",r:"Редкий",d:"Светящиеся нити звёзд и искры забытых сновидений.",box:1}},
+ {h:33,box:1,skin:{n:"Странница туманностей",c:"#39548d",a:"#a9deff",fx:"comet",r:"Редкий",d:"Лунные доспехи с туманным серебристым шлейфом.",box:1}},
+ {h:36,box:1,skin:{n:"Квантовый мастер",c:"#384a76",a:"#a2efff",fx:"gears",r:"Редкий",d:"Механизм из астрального металла и вращающихся колец.",box:1}},
+ {h:28,box:1,skin:{n:"Звёздный провидец",c:"#4a286c",a:"#ffe7a0",fx:"starfield",r:"Редкий",d:"Оракул читает судьбы в звёздной пыли.",box:1}},
+ {h:17,box:1,skin:{n:"Хранитель орбит",c:"#213b75",a:"#90f4f1",fx:"orbitals",r:"Редкий",d:"Хронос повелевает сияющими орбитами времени.",box:1}},
+ {h:2,box:1,skin:{n:"Небесный картограф",c:"#342a8b",a:"#d5b5ff",fx:"sigils",r:"Эпический",d:"Маг выводит вокруг себя карту древних созвездий.",box:1}},
+ {h:25,box:1,skin:{n:"Отголосок галактик",c:"#2c3770",a:"#86b7ff",fx:"nebula",r:"Эпический",d:"Призрак из межзвёздного тумана, окружённый светящимися частицами.",box:1}},
+ {h:32,box:1,skin:{n:"Кузнец созвездий",c:"#31487c",a:"#c7edff",fx:"sigils",r:"Эпический",d:"Руны плавятся в холодном свете далёких солнц.",box:1}},
+ {h:27,box:1,skin:{n:"Сердце сверхновой",c:"#462c92",a:"#ffda91",fx:"storm",r:"Легендарный",d:"Громовержец разрывает небо молниями умирающей звезды.",box:1}},
+ {h:18,box:1,skin:{n:"Сад пустоты",c:"#24385a",a:"#c3a9ff",fx:"nebula",r:"Легендарный",d:"Друид выращивает призрачные цветы среди звёздной мглы.",box:1}},
+ {h:35,box:1,skin:{n:"АРКАНА: Императрица вечных снов",c:"#21123c",a:"#f7b9ff",fx:"dreamArcana",r:"Аркана",d:"Уникальный силуэт: корона сновидений, парящие крылья, лунные лепестки и пульсирующий портал сна.",box:1}},
+ {h:34,box:2,skin:{n:"Пепельный наследник",c:"#4d2b2d",a:"#ffac75",fx:"embers",r:"Редкий",d:"Драконорождённый в чешуе потухшего вулкана.",box:2}},
+ {h:32,box:2,skin:{n:"Горнило древних",c:"#62382d",a:"#ffc77f",fx:"embers",r:"Редкий",d:"Рунный кузнец с пылающими печатями старой династии.",box:2}},
+ {h:0,box:2,skin:{n:"Обсидиановый легионер",c:"#39323a",a:"#e7a36f",fx:"sparks",r:"Редкий",d:"Закалённая в лаве броня и обсидиановое оружие.",box:2}},
+ {h:12,box:2,skin:{n:"Кровавый чемпион",c:"#68252d",a:"#ff7a6d",fx:"embers",r:"Редкий",d:"Гладиатор, покрытый алыми рунами победы.",box:2}},
+ {h:16,box:2,skin:{n:"Чёрный лёд",c:"#263646",a:"#a0d7ec",fx:"darkFrost",r:"Редкий",d:"Пепельный мороз и тёмные ледяные осколки вокруг Криоманта.",box:2}},
+ {h:6,box:2,skin:{n:"Владыка шлакового пламени",c:"#82301b",a:"#ffd16d",fx:"flames",r:"Эпический",d:"Пироман с лавовой короной и огненными прожилками.",box:2}},
+ {h:10,box:2,skin:{n:"Берсерк вулкана",c:"#572721",a:"#ff8d53",fx:"embers",r:"Эпический",d:"Раскалённые топоры и вихрь вулканических искр.",box:2}},
+ {h:29,box:2,skin:{n:"Рыцарь угасающего солнца",c:"#673b32",a:"#ffe0a5",fx:"sigils",r:"Эпический",d:"Рыцарь последнего заката в золото-угольных латах.",box:2}},
+ {h:24,box:2,skin:{n:"Князь багровой золы",c:"#451828",a:"#ff5b76",fx:"bats",r:"Легендарный",d:"Вампирский владыка с крыльями из пепла и багровыми глазами.",box:2}},
+ {h:3,box:2,skin:{n:"Палач дымных клинков",c:"#3a2b34",a:"#ffb59a",fx:"smokeBlades",r:"Легендарный",d:"Ассасин, оставляющий за ударами дымные лезвия.",box:2}},
+ {h:34,box:2,skin:{n:"АРКАНА: Император изначального пламени",c:"#521719",a:"#ffdb6e",fx:"infernoArcana",r:"Аркана",d:"Уникальный силуэт: драконьи крылья, раскалённые рога, огненная корона и вращающееся кольцо пламени.",box:2}},
+];
+for(const {h,skin} of SKIN_ADDITIONS)(SKIN[h]||(SKIN[h]=[])).push(skin);
 const skinOf=u=>{const L=SKIN[u.h];return u.sk&&L?L[u.sk-1]||null:null},curSk=i=>{const k=(PROF.sk||{})[i]|0;return k&&skOpen(i,k)?k:0},skValid=(h,k)=>SKIN[h]&&k>=1&&k<=SKIN[h].length?k:0;let GSK=0,SKT=null;
 function skinFx(u,sk,x,y,r,fa){const t=(SKT!=null?SKT:(typeof T=='number'?T:0))+(u.id||0)*.7;g.save();
  g.globalAlpha=.6;g.strokeStyle=sk.a;g.lineWidth=2;g.beginPath();g.arc(x,y,r+1,0,7);g.stroke();g.globalAlpha=1;
@@ -1437,6 +1478,31 @@ function skinFx(u,sk,x,y,r,fa){const t=(SKT!=null?SKT:(typeof T=='number'?T:0))+
  case'jade':g.strokeStyle=sk.a;g.lineWidth=2.4;g.setLineDash([7,6]);g.lineDashOffset=-t*18;g.beginPath();g.arc(x,y,r+5,0,7);g.stroke();g.setLineDash([]);g.translate(x,y);g.rotate(fa);glow(r*1.2,-r*.7,r*.7,sk.a,'88');glow(r*1.2,r*.7,r*.7,sk.a,'88');break
  case'comet':{glow(x,y,r*1.9,'#3be8f0','55');for(let i=0;i<7;i++){const a=t*1.1+i*6.283/7,rr=r*(1.1+(i%3)*.22);g.fillStyle=i%2?'#e8ffff':'#72ccff';g.globalAlpha=.55+.45*Math.sin(t*3+i)**2;g.beginPath();g.arc(x+Math.cos(a)*rr,y+Math.sin(a)*rr,r*.11,0,7);g.fill()}g.globalAlpha=1;break}
  case'gears':{g.lineWidth=2.7;g.strokeStyle='#ffd596';for(let j=0;j<2;j++){const gx=x+(j?1:-1)*r*1.15,gy=y-r*.5,rr=r*(j?.48:.7);g.save();g.translate(gx,gy);g.rotate(t*(j?-1:1));for(let k=0;k<9;k++){const a=k*6.283/9;g.fillStyle='#c89a45';g.fillRect(Math.cos(a)*rr*1.08-rr*.12,Math.sin(a)*rr*1.08-rr*.12,rr*.24,rr*.24)}g.beginPath();g.arc(0,0,rr,0,7);g.stroke();g.beginPath();g.arc(0,0,rr*.25,0,7);g.fillStyle='#ffffe0';g.fill();g.restore()}break}
+ case 'starfield':{
+  glow(x,y,r*1.85,sk.a,'26');for(let i=0;i<7;i++){const ph=(t*.31+i/7)%1,ang=i*2.399+t*.25,rr=r*(1+ph*1.2);g.globalAlpha=.4+.6*Math.sin(ph*Math.PI);g.fillStyle=sk.a;g.beginPath();const xx=x+Math.cos(ang)*rr,yy=y+Math.sin(ang)*rr;g.moveTo(xx,yy-r*.17);g.lineTo(xx+r*.08,yy);g.lineTo(xx,yy+r*.17);g.lineTo(xx-r*.08,yy);g.closePath();g.fill()}g.globalAlpha=1;break}
+ case 'orbitals':{
+  g.save();g.translate(x,y);g.rotate(t*.33);g.strokeStyle=sk.a;g.lineWidth=2;g.beginPath();g.ellipse(0,0,r*2,r*.85,0,0,Math.PI*2);g.stroke();for(let i=0;i<3;i++){const a=t*1.4+i*Math.PI*2/3;g.fillStyle=i===0?'#fff':sk.a;g.beginPath();g.arc(Math.cos(a)*r*2,Math.sin(a)*r*.85,r*.16,0,Math.PI*2);g.fill()}g.restore();break}
+ case 'sigils':{
+  g.save();g.translate(x,y);g.rotate(t*.18);g.strokeStyle=sk.a;g.lineWidth=1.5;g.globalAlpha=.8;for(let j=0;j<2;j++){const rr=r*(1.55+j*.4);g.beginPath();for(let i=0;i<7;i++){const a=i*Math.PI*2/7+(j?Math.PI/7:0);i?g.lineTo(Math.cos(a)*rr,Math.sin(a)*rr):g.moveTo(Math.cos(a)*rr,Math.sin(a)*rr)}g.closePath();g.stroke()}g.restore();break}
+ case 'nebula':{
+  glow(x,y,r*2.6,sk.a,'36');for(let i=0;i<11;i++){const a=t*.26+i*2.4,rr=r*(1.05+(i%4)*.31);g.globalAlpha=.25+.55*Math.sin(t+i)**2;g.fillStyle=i%2?sk.a:'#fff';g.beginPath();g.arc(x+Math.cos(a)*rr,y+Math.sin(a)*rr,r*(.08+i%3*.04),0,Math.PI*2);g.fill()}g.globalAlpha=1;break}
+ case 'embers':{
+  glow(x,y,r*2,'#e85d2b','22');for(let i=0;i<10;i++){const ph=(t*.47+i*.1)%1,xx=x+Math.cos(i*2.39+t*.25)*r*(.65+ph*.95),yy=y+r*.5-ph*r*2.6;g.globalAlpha=(1-ph)*.95;g.fillStyle=i%3===0?'#ffe4a4':sk.a;g.beginPath();g.arc(xx,yy,r*(.07+.06*(1-ph)),0,Math.PI*2);g.fill()}g.globalAlpha=1;break}
+ case 'darkFrost':{
+  glow(x,y,r*1.7,sk.a,'25');g.strokeStyle=sk.a;g.lineWidth=2;for(let i=0;i<6;i++){const a=t*.23+i*Math.PI/3,rr=r*1.7;g.save();g.translate(x+Math.cos(a)*rr,y+Math.sin(a)*rr);g.rotate(a);g.beginPath();g.moveTo(-r*.22,-r*.14);g.lineTo(r*.22,0);g.lineTo(-r*.22,r*.14);g.closePath();g.stroke();g.restore()}break}
+ case 'smokeBlades':{
+  for(let i=0;i<5;i++){const ph=(t*.32+i*.2)%1,a=i*2.4+t*.28,rr=r*(.9+ph*1.6),xx=x+Math.cos(a)*rr,yy=y+Math.sin(a)*rr;g.globalAlpha=(1-ph)*.75;g.fillStyle=i%2?sk.a:'#a9a0af';g.beginPath();g.ellipse(xx,yy,r*(.25+ph*.2),r*.13,a,0,Math.PI*2);g.fill()}g.globalAlpha=1;break}
+ case 'dreamArcana':{
+  const pulse=.5+.5*Math.sin(t*2.2);glow(x,y,r*(2.6+pulse*.3),sk.a,'38');
+  for(const sg of [-1,1]){g.save();g.translate(x+sg*r*.5,y+r*.18);g.scale(sg,1);g.fillStyle='#a46ff48c';g.strokeStyle='#ffe2fc';g.lineWidth=2;g.beginPath();g.moveTo(0,0);g.bezierCurveTo(r*.55,-r*2.65,r*1.9,-r*2.1,r*2.2,-r*.55);g.bezierCurveTo(r*1.85,r*.6,r*.8,r*.9,0,0);g.fill();g.stroke();g.restore()}
+  g.save();g.translate(x,y-r*1.2);g.fillStyle='#5a2578';g.strokeStyle='#ffdefa';g.lineWidth=2;g.beginPath();g.moveTo(-r*.75,0);g.lineTo(-r*.6,-r*.9);g.lineTo(-r*.24,-r*.38);g.lineTo(0,-r*1.24);g.lineTo(r*.24,-r*.38);g.lineTo(r*.6,-r*.9);g.lineTo(r*.75,0);g.closePath();g.fill();g.stroke();g.restore();
+  g.lineWidth=2;g.strokeStyle='#f7b9ff';g.setLineDash([r*.3,r*.16]);g.lineDashOffset=-t*12;g.beginPath();g.ellipse(x,y,r*2.2,r*1.1,-t*.16,0,Math.PI*2);g.stroke();g.setLineDash([]);
+  for(let i=0;i<9;i++){const a=t*.57+i*2.4,rr=r*(1.6+(i%3)*.32);g.globalAlpha=.45+.4*Math.sin(t+i)**2;g.fillStyle=i%2?'#ffa3e5':'#c1aeff';g.save();g.translate(x+Math.cos(a)*rr,y+Math.sin(a)*rr);g.rotate(a+t);g.beginPath();g.ellipse(0,0,r*.25,r*.11,0,0,Math.PI*2);g.fill();g.restore()}g.globalAlpha=1;break}
+ case 'infernoArcana':{
+  const pulse=.5+.5*Math.sin(t*3.3);glow(x,y,r*(2.6+pulse*.3),'#ff7929','50');
+  for(const sg of [-1,1]){g.save();g.translate(x+sg*r*.45,y+r*.1);g.scale(sg,1);g.fillStyle='#af2c19bd';g.strokeStyle='#ffc579';g.lineWidth=2;g.beginPath();g.moveTo(0,0);g.bezierCurveTo(r*.75,-r*2.4,r*1.8,-r*2.5,r*2.3,-r*1.4);g.lineTo(r*1.8,-r*1.2);g.lineTo(r*2.5,-r*.45);g.bezierCurveTo(r*1.45,r*.5,r*.65,r*.55,0,0);g.fill();g.stroke();g.restore()}
+  g.save();g.translate(x,y-r*1.2);g.strokeStyle='#ffdf8e';g.lineWidth=2.8;g.beginPath();g.moveTo(-r*.7,0);g.lineTo(-r*.88,-r*1.2);g.lineTo(-r*.38,-r*.6);g.lineTo(0,-r*1.5);g.lineTo(r*.38,-r*.6);g.lineTo(r*.88,-r*1.2);g.lineTo(r*.7,0);g.stroke();g.restore();
+  for(let i=0;i<11;i++){const a=t*.83+i*Math.PI*2/11,rr=r*(2.15+pulse*.2),xx=x+Math.cos(a)*rr,yy=y+Math.sin(a)*rr*.85,sz=r*(.14+.11*Math.sin(t*4+i)**2);g.fillStyle=i%3===0?'#fff1b0':i%2?'#ffc057':'#ff623e';g.beginPath();g.moveTo(xx,yy-sz*1.8);g.lineTo(xx+sz,yy);g.lineTo(xx,yy+sz*1.5);g.lineTo(xx-sz,yy);g.closePath();g.fill()}break}
  case'voidArcana':{
   // Arcana changes the silhouette, not merely its color: astral wings, a crown and five orbiting void blades.
   const pulse=.5+.5*Math.sin(t*3),radius=r*(2.5+pulse*.12);
@@ -2137,13 +2203,15 @@ const lootTiers=['Редкий','Эпический','Легендарный','�
 function lootRates(){const arc=Math.min(6,1+Math.max(0,(PROF.arcanaMiss|0)-20)*.25),v=(100-arc)/99;return [63*v,27*v,9*v,arc]}
 function rand01(){if(typeof crypto!=='undefined'&&crypto.getRandomValues){const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]/4294967296}return Math.random()}
 function lootPickTier(){const rates=lootRates();let x=rand01()*100;for(let i=0;i<rates.length;i++){x-=rates[i];if(x<0)return lootTiers[i]}return 'Аркана'}
-let LOOT_LAST=null;
-function lootGet(){if((PROF.tokens|0)<LOOT_COST)return;const tier=lootPickTier(),pool=invList().filter(x=>x.s.r===tier),unowned=pool.filter(x=>!skOpen(x.h,x.k));
+let LOOT_LAST=null,LOOT_BOX=0;
+function chooseLootBox(id){if(!CHESTS[id])return;LOOT_BOX=id;ov('loot')}
+function lootGet(){if((PROF.tokens|0)<LOOT_COST)return;const tier=lootPickTier(),pool=invList().filter(x=>x.box===LOOT_BOX&&x.s.r===tier),unowned=pool.filter(x=>!skOpen(x.h,x.k));
+ if(!pool.length)return;
  PROF.tokens=Math.max(0,(PROF.tokens|0)-LOOT_COST);
  const got=(unowned.length?unowned:pool)[Math.floor(rand01()*(unowned.length||pool.length))];
  if(tier==='Аркана')PROF.arcanaMiss=0;else PROF.arcanaMiss=(PROF.arcanaMiss|0)+1;
- if(unowned.length){PROF.owned=PROF.owned||{};PROF.owned[got.h+':'+got.k]=1;LOOT_LAST={...got,duplicate:false,refund:0}}
- else{PROF.tokens+=90;LOOT_LAST={...got,duplicate:true,refund:90}}
+ if(unowned.length){PROF.owned=PROF.owned||{};PROF.owned[got.h+':'+got.k]=1;LOOT_LAST={...got,box:LOOT_BOX,duplicate:false,refund:0}}
+ else{PROF.tokens+=90;LOOT_LAST={...got,box:LOOT_BOX,duplicate:true,refund:90}}
  saveProf();ov('lootResult');
 }
 // Direct skin purchases disabled: the chest is the only way to unlock a skin.
@@ -2172,15 +2240,17 @@ function rewardHTML(){const r=RW;
  +'<div style="margin-top:8px"><b>Опыт: +'+r.xp+'</b> <small>(участие '+xp.base+' + убийства '+xp.kills+' + помощь '+xp.assists+' + '+(r.won?'победа':'поражение')+' '+xp.res+')</small><br>Уровень '+r.l0+(r.l1!=r.l0?' → <b>'+r.l1+'</b> ⬆':'')+'</div>'
  +(r.full?'<div class="rwu">🏅 Достигнут 50 уровень! Заберите медаль в инвентаре.</div>':'')
  +'<div class="mb"><button class="btn big" onclick="goLoot()">🎁 Магазин сундуков</button><button class="btn" onclick="goInv()">🎒 Инвентарь</button></div></div>'}
-function lootHTML(){const rates=lootRates(),tierBox=lootTiers.map((r,i)=>'<div class="loot-rate" style="--rc:'+RAR[r]+'"><strong>'+r+'</strong><b>'+rates[i].toFixed(2).replace('.',',')+'%</b></div>').join('');
- const cards=invList().map(x=>{const own=skOpen(x.h,x.k),col=RAR[x.s.r];return '<div class="loot-skin" style="--rc:'+col+'"><div class="invr">'+x.s.r+'</div><canvas class="pv" data-h="'+x.h+'" data-k="'+x.k+'" width="160" height="160"></canvas><div><b>'+x.s.n+'</b><small>'+HER[x.h].n+'</small></div><button class="btn" disabled>'+(own?'✓ Получено':'🔒 Только из сундука')+'</button></div>'}).join('');
- return '<div class="box" style="max-width:1000px"><h1>🎁 Сокровищница Стражей</h1><p class="loot-info">Вместо Золотого сезона — сундук со всеми скинами. Чем выше редкость, тем сложнее получить. Скины не дают преимуществ в бою.</p>'
- +'<div class="loot-hero"><div class="loot-chest">🎁</div><div class="loot-details"><b>Сундук двух королевств</b><div>Баланс: <strong>✦ '+(PROF.tokens|0)+'</strong></div><small>Цена сундука: '+LOOT_COST+' жетонов · После 20 сундуков без Арканы её шанс постепенно растёт (макс. 6%).</small><div class="mb" style="justify-content:flex-start"><button class="btn big" '+((PROF.tokens|0)<LOOT_COST?'disabled':'onclick="lootGet()"')+'>Открыть за '+LOOT_COST+' ✦</button><button class="btn" onclick="goInv()">Мои скины</button></div></div></div>'
- +'<div class="loot-rates">'+tierBox+'</div><div class="invd">Дубликаты не выпадают, пока в выбранной редкости остались неоткрытые скины. Если все скины редкости уже получены — возвращается 90 ✦. Скины можно получить только из сундуков. Все старые коллекции сброшены однократно.</div>'
- +'<h2 class="loot-subhead">Все награды сундука</h2><div class="loot-grid">'+cards+'</div><div class="rwd"><b>Как получать жетоны</b><div class="rwl"><span>Завершённое поражение</span><b>18 ✦</b><span>Завершённая победа</span><b>30 ✦</b><span>Бонус за время</span><b>до 10 ✦</b><span>Сетевой матч</span><b>+6 ✦</b></div><small>Матчи короче 3 минут и досрочные выходы не дают жетонов.</small></div><div class="mb"><button class="btn big" onclick="goMenu()">Назад</button></div></div>'}
-function lootResultHTML(){const x=LOOT_LAST;if(!x)return lootHTML();const c=RAR[x.s.r];return '<div class="box loot-result" style="max-width:570px;--rc:'+c+'"><h1>'+(x.bought?'Новый скин!':x.duplicate?'Повторная награда':'СУНДУК ОТКРЫТ!')+'</h1><div class="loot-result-stars">✦ ✧ ✦</div><div class="loot-result-title" style="color:'+c+'">'+x.s.r.toUpperCase()+'</div><div class="loot-result-art"><canvas class="pv" data-h="'+x.h+'" data-k="'+x.k+'" width="340" height="340"></canvas></div><h2>'+x.s.n+'</h2><p>'+HER[x.h].n+'</p><div class="invd">'+(x.duplicate?'Этот скин уже получен. Возвращено '+x.refund+' жетонов.':x.s.d)+'</div><div class="mb"><button class="btn big" onclick="goLoot()">К сундукам</button><button class="btn" onclick="goInv()">Инвентарь</button>'+(x.duplicate?'':'<button class="btn" onclick="lootEquip('+x.h+','+x.k+')">Надеть</button>')+'</div></div>'}
+function lootHTML(){const box=CHESTS[LOOT_BOX]||CHESTS[0],rates=lootRates(),tierBox=lootTiers.map((r,i)=>'<div class="loot-rate" style="--rc:'+RAR[r]+'"><strong>'+r+'</strong><b>'+rates[i].toFixed(2).replace('.',',')+'%</b></div>').join('');
+ const boxes=CHESTS.map(b=>{const rewards=invList().filter(x=>x.box===b.id),have=rewards.filter(x=>skOpen(x.h,x.k)).length;return '<button class="loot-option'+(LOOT_BOX===b.id?' selected':'')+'" style="--accent:'+b.color+'" onclick="chooseLootBox('+b.id+')"><span class="loot-option-icon">'+b.icon+'</span><span class="loot-option-body"><strong>'+b.n+'</strong><small>'+b.desc+'</small><em>'+have+' / 11 скинов собрано</em></span></button>'}).join('');
+ const cards=invList().filter(x=>x.box===LOOT_BOX).map(x=>{const own=skOpen(x.h,x.k),col=RAR[x.s.r];return '<div class="loot-skin" style="--rc:'+col+'"><div class="invr">'+x.s.r+'</div><canvas class="pv" data-h="'+x.h+'" data-k="'+x.k+'" width="160" height="160"></canvas><div><b>'+x.s.n+'</b><small>'+HER[x.h].n+'</small></div><button class="btn" disabled>'+(own?'✓ Получено':'🔒 Только из сундука')+'</button></div>'}).join('');
+ return '<div class="box" style="max-width:1000px"><h1>🎁 Сокровищница Стражей</h1><p class="loot-info">Три коллекции по 11 уникальных скинов в каждой. Выбери сундук: его награды не смешиваются с другими. Скины не влияют на баланс.</p>'
+ +'<div class="loot-options">'+boxes+'</div>'
+ +'<div class="loot-hero" style="--chest-color:'+box.color+'"><div class="loot-chest">'+box.icon+'</div><div class="loot-details"><b>'+box.n+'</b><div>Баланс: <strong>✦ '+(PROF.tokens|0)+'</strong></div><small>Цена сундука: '+LOOT_COST+' жетонов. Шансы одинаковы для всех сундуков. После 20 открытий без Арканы её шанс постепенно растёт (макс. 6%).</small><div class="mb" style="justify-content:flex-start"><button class="btn big" '+((PROF.tokens|0)<LOOT_COST?'disabled':'onclick="lootGet()"')+'>Открыть за '+LOOT_COST+' ✦</button><button class="btn" onclick="goInv()">Мои скины</button></div></div></div>'
+ +'<div class="loot-rates">'+tierBox+'</div><div class="invd">В каждом сундуке: 5 редких, 3 эпических, 2 легендарных и 1 Аркана. Дубликаты не выпадают, пока в выбранной редкости и сундуке остались неоткрытые скины. Если вся редкость уже собрана — возвращается 90 ✦. Прогресс скинов сохраняется.</div>'
+ +'<h2 class="loot-subhead">Награды: '+box.n+'</h2><div class="loot-grid">'+cards+'</div><div class="rwd"><b>Как получать жетоны</b><div class="rwl"><span>Завершённое поражение</span><b>18 ✦</b><span>Завершённая победа</span><b>30 ✦</b><span>Бонус за время</span><b>до 10 ✦</b><span>Сетевой матч</span><b>+6 ✦</b></div><small>Матчи короче 3 минут и досрочные выходы не дают жетонов.</small></div><div class="mb"><button class="btn big" onclick="goMenu()">Назад</button></div></div>'}
+function lootResultHTML(){const x=LOOT_LAST;if(!x)return lootHTML();const c=RAR[x.s.r];return '<div class="box loot-result" style="max-width:570px;--rc:'+c+'"><h1>'+(x.bought?'Новый скин!':x.duplicate?'Повторная награда':'СУНДУК ОТКРЫТ!')+'</h1><small>'+(CHESTS[x.box||0]||CHESTS[0]).n+'</small><div class="loot-result-stars">✦ ✧ ✦</div><div class="loot-result-title" style="color:'+c+'">'+x.s.r.toUpperCase()+'</div><div class="loot-result-art"><canvas class="pv" data-h="'+x.h+'" data-k="'+x.k+'" width="340" height="340"></canvas></div><h2>'+x.s.n+'</h2><p>'+HER[x.h].n+'</p><div class="invd">'+(x.duplicate?'Этот скин уже получен. Возвращено '+x.refund+' жетонов.':x.s.d)+'</div><div class="mb"><button class="btn big" onclick="goLoot()">К сундукам</button><button class="btn" onclick="goInv()">Инвентарь</button>'+(x.duplicate?'':'<button class="btn" onclick="lootEquip('+x.h+','+x.k+')">Надеть</button>')+'</div></div>'}
 const RAR={'Редкий':'#5aa2ff','Эпический':'#b36bff','Легендарный':'#ffb23f','Аркана':'#72fff1'};
-function invList(){const a=[];for(const h of Object.keys(SKIN).map(Number).sort((p,q)=>p-q))SKIN[h].forEach((s,k)=>a.push({h,k:k+1,s}));return a}
+function invList(){const a=[];for(const h of Object.keys(SKIN).map(Number).sort((p,q)=>p-q))SKIN[h].forEach((s,k)=>a.push({h,k:k+1,s,box:s.box||0}));return a}
 let invTab=0;
 function invSet(t){invTab=t;ov('inv')}
 function goMenu(){ov('menu')}function goInv(){ov('inv')}function goLoot(){ov('loot')}
@@ -2200,7 +2270,7 @@ function invDraw(cv,h,k,t){const x=cv.getContext('2d'),old=g;try{g=x;x.setTransf
 function invStart(){invStop();const cvs=[...document.querySelectorAll('canvas.pv,canvas.mv')];if(!cvs.length)return;for(const cv of cvs)cvDraw(cv,performance.now()/1000);let last=0;const loop=ts=>{if(ovMode!='inv'&&ovMode!='loot'&&ovMode!='lootResult'){invRaf=0;return}if(ts-last>33){last=ts;const t=ts/1000;for(const cv of cvs)cvDraw(cv,t)}invRaf=requestAnimationFrame(loop)};invRaf=requestAnimationFrame(loop)}
 function cvDraw(cv,t){if(cv.dataset.m!=null)drawMedal(cv.getContext('2d'),cv.width,+cv.dataset.m,+cv.dataset.p,t,cv.dataset.l==='1');else invDraw(cv,+cv.dataset.h,+cv.dataset.k,t)}
 function invStop(){if(invRaf){cancelAnimationFrame(invRaf);invRaf=0}}
-function skinRow(i){const L=SKIN[i];if(!L)return '';const c=curSk(i);return '<div class="skr"><b>Скин:</b>'+[{n:'Обычный'}].concat(L).map((s,k)=>{const lk=k>0&&!skOpen(i,k);return '<button class="skb'+(c==k?' on':'')+(lk?' lk':'')+'" '+(lk?'title="Не получен. Откройте в сундуке или купите в магазине"':'onclick="setSkin('+i+','+k+')"')+'>'+portrait(i,34,k)+'<span>'+(lk?'🔒 ':'')+s.n+'</span></button>'}).join('')+'<button class="btn" onclick="goLoot()">🎁 Магазин скинов</button></div>'}
+function skinRow(i){const L=SKIN[i];if(!L)return '';const c=curSk(i);return '<div class="skr"><b>Скин:</b>'+[{n:'Обычный'}].concat(L).map((s,k)=>{const lk=k>0&&!skOpen(i,k);return '<button class="skb'+(c==k?' on':'')+(lk?' lk':'')+'" '+(lk?'title="Не получен. Откройте в сундуке"':'onclick="setSkin('+i+','+k+')"')+'>'+portrait(i,34,k)+'<span>'+(lk?'🔒 ':'')+s.n+'</span></button>'}).join('')+'<button class="btn" onclick="goLoot()">🎁 Магазин сундуков</button></div>'}
 function setSkin(i,k){if(k&&!skOpen(i,k))return;PROF.sk=PROF.sk||{};if(k)PROF.sk[i]=k;else delete PROF.sk[i];saveProf();if(ovMode=='pick')pickSel(i);else if(DR)ov('draft')}
 function heroInfo(i){const H=HER[i],m=H.dmg,a=HAT[i];return '<div class="hi">'+portrait(i,84,curSk(i))+'<div><b style="font-size:18px">'+H.n+'</b> <span class="at" style="background:'+ACL[a]+'">'+ATN[a]+'</span> <span class="at" style="background:'+RCOL[HROLE[i]]+'">'+RNAME[HROLE[i]]+'</span><br><small>'+H.d.split('.')[0]+'</small><br><small>Здоровье '+H.hp+' · Урон '+H.dmg+' · Дальность '+H.rg+' · Атака '+H.as+'</small></div></div>'+skinRow(i)+
  [0,1,2].map(k=>'<div class="ab"><b>'+'QER'[k]+'</b> <u>'+H.sn[k]+'</u> <small>'+(k==2?'(с 10 ур.) ':'')+(H.cd[k]?'· перезарядка '+H.cd[k]+' с':'· пассивно')+'</small><br><small>'+TIP[H.ab[k]](m)+'</small></div>').join('')+'<div class="ab"><b>П</b> <u>'+H.ps[0]+'</u> <small>(с 20 ур.)</small><br><small>'+H.ps[1]+'</small></div><div class="ab"><b>🛒</b> <u>Сборка</u><br><small>'+BUILD[i].map(id=>ITEMS[id-1].i+' '+ITEMS[id-1].n).join(' → ')+'</small><br><small>'+BNOTE[i]+'</small></div>'}

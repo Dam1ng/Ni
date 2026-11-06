@@ -824,7 +824,7 @@ function heroOver(u){const x=u.x,y=u.y,r=u.r,tt=T;
  if(u.rvt>T&&u.rvm==VT){g.fillStyle='#ffe27a';g.font='bold 22px system-ui';g.fillText('👁',x,y-r-46);g.font='bold 18px system-ui'}}
 const nhf=(u,r)=>{let b=null,bs=1e9;for(const o of U)if(o.k=='hero'&&!o.dead&&o.team!=u.team&&canHit(o)&&(u.team>1||seen(u.team,o.x,o.y))){const d=D(u,o);if(d<r&&d<bs){bs=d;b=o}}return b};
 function cast(u,i){if(!u||u.dead||u.st>0||u.sil>0||u.chn||u.pU>T||u.c[i]>0||(i==2&&u.lvl<10))return;if(HER[u.h].ab[i].slice(0,2)=='p_')return;const H=HER[u.h],a=H.ab[i],m=u.dmg*(1+(u.ia?u.ia.ap:0)),E=i==2&&u.lvl>=50?1.5:1,X=E>1?1.2:1,pk=ptier(u),cdr=(u.h==2&&pk?1-[.1,.18,.25][pk-1]:1)*(1-(u.ia?u.ia.cd:0)),rg2=u.rg+(u.h==2?80:50);let ok=1;
- const en=(x,y,r)=>U.filter(t=>!t.dead&&t.team!=u.team&&canHit(t)&&Math.hypot(t.x-x,t.y-y)<=r+t.r),ring=(x,y,r)=>fxp({x,y,r,c:H.c,t:.35}),
+ const en=(x,y,r)=>U.filter(t=>!t.dead&&t.team!=u.team&&canHit(t)&&Math.hypot(t.x-x,t.y-y)<=r+t.r),ring=(x,y,r)=>{const sk=skinOf(u);fxp({x,y,r,c:sk?sk.a:H.c,t:sk&&sk.design?.55:.35,cos:sk&&sk.design?sk.spell:null,slot:i})},
  tg=()=>u.tgt&&!u.tgt.dead&&canHit(u.tgt)&&D(u,u.tgt)<=rg2?u.tgt:pick(u,rg2),al=r=>U.filter(o=>o.k=='hero'&&!o.dead&&o.team==u.team&&D(o,u)<r),
  rs=q=>{q.x=Math.max(0,Math.min(W,q.x));q.y=Math.max(0,Math.min(W,q.y));resolve(q)};
  const nh=r=>{let b=null,bd=r;for(const t of U)if(t.k=='hero'&&!t.dead&&t.team!=u.team&&seen(u.team,t.x,t.y)){const d=D(u,t);if(d<bd){bd=d;b=t}}return b};
@@ -939,7 +939,7 @@ function cast(u,i){if(!u||u.dead||u.st>0||u.sil>0||u.chn||u.pU>T||u.c[i]>0||(i==
  case'repair':{al(360).forEach(o=>{healTo(u,o,o.mhp*.20);o.sh=Math.max(o.sh,o.mhp*.16);o.sht=Math.max(o.sht||0,5)});ring(u.x,u.y,360);break}
  case'workshop':{const a0=u.fa||0;summon(u,'bl',u.x+Math.cos(a0)*95,u.y+Math.sin(a0)*95,12*X);summon(u,'ht',u.x-Math.cos(a0)*80,u.y-Math.sin(a0)*80,12*X);al(420).forEach(o=>o.hs=Math.max(o.hs,4));ring(u.x,u.y,220);break}
  }u.ic=0;
- if(ok){u.la=T;if(u.h==21&&ptier(u))u.hs=Math.max(u.hs,[1.5,2.2,3][ptier(u)-1]);u.c[i]=H.cd[i]*(E>1?.75:1)*cdr;snd(ASND[a]||'ab_magic',u.x,u.y,i==2?1.3:1);if(i==2)snd('ult',u.x,u.y)}}
+ if(ok){u.la=T;const liveSkin=skinOf(u);if(liveSkin&&liveSkin.design)fxp({x:u.x,y:u.y,r:75,c:liveSkin.a,t:.6,cos:liveSkin.spell,slot:i});if(u.h==21&&ptier(u))u.hs=Math.max(u.hs,[1.5,2.2,3][ptier(u)-1]);u.c[i]=H.cd[i]*(E>1?.75:1)*cdr;snd(ASND[a]||'ab_magic',u.x,u.y,i==2?1.3:1);if(i==2)snd('ult',u.x,u.y)}}
 function ultOK(u,t){const k=HER[u.h].ab[2],E2=r=>U.filter(o=>o.k=='hero'&&!o.dead&&o.team!=u.team&&D(o,u)<r&&seen(u.team,o.x,o.y)),A=r=>U.filter(o=>o.k=='hero'&&!o.dead&&o.team==u.team&&o!==u&&D(o,u)<r),e4=E2(450),e7=E2(700),hp=u.hp/u.mhp;
  switch(k){case'runefort':return e4.length>=1&&(hp<.8||A(310).length>=1);case'lunarfury':return e7.length>=1;case'dragonflame':return E2(360).length>=1;case'nightmare':return E2(380).length>=2;case'workshop':return e7.length>=1;case'banner':return e4.length>=1&&A(360).length>=1;case'hunt':return e7.length>=1;case'void':return E2(520).length>=2||(t.k=='hero'&&hp>.5);case'deathmark':return t.k=='hero'&&t.hp>t.mhp*.35;
  case'revive':return U.some(o=>o.k=='hero'&&o.dead&&o.team==u.team&&o!==u)||A(500).filter(o=>o.hp<o.mhp*.5).length>=2;case'wall':return e4.length>=1&&(hp<.8||e4.length>=2);case'meteors':return e7.length>=1&&E2(240).length==0&&hp>.45;
@@ -1439,31 +1439,171 @@ const CHESTS=[
  {id:2,n:'Пепельная династия',icon:'🔥',desc:'Древние империи, драконы, вулканы и запретное пламя.',color:'#ffb477'}
 ];
 const SKIN_ADDITIONS=[
- {h:35,box:1,skin:{n:"Ловец созвездий",c:"#32275c",a:"#b7a4ff",fx:"starfield",r:"Редкий",d:"Светящиеся нити звёзд и искры забытых сновидений.",box:1}},
- {h:33,box:1,skin:{n:"Странница туманностей",c:"#39548d",a:"#a9deff",fx:"comet",r:"Редкий",d:"Лунные доспехи с туманным серебристым шлейфом.",box:1}},
- {h:36,box:1,skin:{n:"Квантовый мастер",c:"#384a76",a:"#a2efff",fx:"gears",r:"Редкий",d:"Механизм из астрального металла и вращающихся колец.",box:1}},
- {h:28,box:1,skin:{n:"Звёздный провидец",c:"#4a286c",a:"#ffe7a0",fx:"starfield",r:"Редкий",d:"Оракул читает судьбы в звёздной пыли.",box:1}},
- {h:17,box:1,skin:{n:"Хранитель орбит",c:"#213b75",a:"#90f4f1",fx:"orbitals",r:"Редкий",d:"Хронос повелевает сияющими орбитами времени.",box:1}},
- {h:2,box:1,skin:{n:"Небесный картограф",c:"#342a8b",a:"#d5b5ff",fx:"sigils",r:"Эпический",d:"Маг выводит вокруг себя карту древних созвездий.",box:1}},
- {h:25,box:1,skin:{n:"Отголосок галактик",c:"#2c3770",a:"#86b7ff",fx:"nebula",r:"Эпический",d:"Призрак из межзвёздного тумана, окружённый светящимися частицами.",box:1}},
- {h:32,box:1,skin:{n:"Кузнец созвездий",c:"#31487c",a:"#c7edff",fx:"sigils",r:"Эпический",d:"Руны плавятся в холодном свете далёких солнц.",box:1}},
- {h:27,box:1,skin:{n:"Сердце сверхновой",c:"#462c92",a:"#ffda91",fx:"storm",r:"Легендарный",d:"Громовержец разрывает небо молниями умирающей звезды.",box:1}},
- {h:18,box:1,skin:{n:"Сад пустоты",c:"#24385a",a:"#c3a9ff",fx:"nebula",r:"Легендарный",d:"Друид выращивает призрачные цветы среди звёздной мглы.",box:1}},
- {h:35,box:1,skin:{n:"АРКАНА: Императрица вечных снов",c:"#21123c",a:"#f7b9ff",fx:"dreamArcana",r:"Аркана",d:"Уникальный силуэт: корона сновидений, парящие крылья, лунные лепестки и пульсирующий портал сна.",box:1}},
- {h:34,box:2,skin:{n:"Пепельный наследник",c:"#4d2b2d",a:"#ffac75",fx:"embers",r:"Редкий",d:"Драконорождённый в чешуе потухшего вулкана.",box:2}},
- {h:32,box:2,skin:{n:"Горнило древних",c:"#62382d",a:"#ffc77f",fx:"embers",r:"Редкий",d:"Рунный кузнец с пылающими печатями старой династии.",box:2}},
- {h:0,box:2,skin:{n:"Обсидиановый легионер",c:"#39323a",a:"#e7a36f",fx:"sparks",r:"Редкий",d:"Закалённая в лаве броня и обсидиановое оружие.",box:2}},
- {h:12,box:2,skin:{n:"Кровавый чемпион",c:"#68252d",a:"#ff7a6d",fx:"embers",r:"Редкий",d:"Гладиатор, покрытый алыми рунами победы.",box:2}},
- {h:16,box:2,skin:{n:"Чёрный лёд",c:"#263646",a:"#a0d7ec",fx:"darkFrost",r:"Редкий",d:"Пепельный мороз и тёмные ледяные осколки вокруг Криоманта.",box:2}},
- {h:6,box:2,skin:{n:"Владыка шлакового пламени",c:"#82301b",a:"#ffd16d",fx:"flames",r:"Эпический",d:"Пироман с лавовой короной и огненными прожилками.",box:2}},
- {h:10,box:2,skin:{n:"Берсерк вулкана",c:"#572721",a:"#ff8d53",fx:"embers",r:"Эпический",d:"Раскалённые топоры и вихрь вулканических искр.",box:2}},
- {h:29,box:2,skin:{n:"Рыцарь угасающего солнца",c:"#673b32",a:"#ffe0a5",fx:"sigils",r:"Эпический",d:"Рыцарь последнего заката в золото-угольных латах.",box:2}},
- {h:24,box:2,skin:{n:"Князь багровой золы",c:"#451828",a:"#ff5b76",fx:"bats",r:"Легендарный",d:"Вампирский владыка с крыльями из пепла и багровыми глазами.",box:2}},
- {h:3,box:2,skin:{n:"Палач дымных клинков",c:"#3a2b34",a:"#ffb59a",fx:"smokeBlades",r:"Легендарный",d:"Ассасин, оставляющий за ударами дымные лезвия.",box:2}},
- {h:34,box:2,skin:{n:"АРКАНА: Император изначального пламени",c:"#521719",a:"#ffdb6e",fx:"infernoArcana",r:"Аркана",d:"Уникальный силуэт: драконьи крылья, раскалённые рога, огненная корона и вращающееся кольцо пламени.",box:2}},
+ // ASTRAL RIFT: 5 rare, 3 epic, 2 legendary, 1 arcana. Each has its own draw design and spell motif.
+ {h:35,skin:{n:'Ловчая комет',c:'#142550',a:'#8fd9ff',r:'Редкий',fx:'starfield',design:'cometDream',spell:'comet',box:1,d:'Маска из метеоритного серебра, раздвоенный плащ с кометными хвостами и светящиеся нити снов.'}},
+ {h:33,skin:{n:'Звёздный следопыт',c:'#122f4b',a:'#f8dd94',r:'Редкий',fx:'comet',design:'starRanger',spell:'arrowStars',box:1,d:'Новый световой лук, капюшон со звёздной картой и искристые следы стрел.'}},
+ {h:36,skin:{n:'Навигатор пустоты',c:'#1c284c',a:'#6cf4ed',r:'Редкий',fx:'orbitals',design:'voidEngineer',spell:'satellite',box:1,d:'Шлем с тремя линзами, антенны и собственный дрон-спутник вокруг экзокостюма.'}},
+ {h:11,skin:{n:'Хранитель затмения',c:'#292042',a:'#d7b4ff',r:'Редкий',fx:'moon',design:'eclipseNecro',spell:'eclipse',box:1,d:'Костяная корона затмения, мантия с лунным диском и миниатюрные спутники-черепа.'}},
+ {h:25,skin:{n:'Эхо галактики',c:'#18264d',a:'#9edafa',r:'Редкий',fx:'nebula',design:'galaxyGhost',spell:'ghostEcho',box:1,d:'Полупрозрачное звёздное тело, разорванный плащ и клинок из межзвёздного газа.'}},
+ {h:3,skin:{n:'Разрезатель туманностей',c:'#291a50',a:'#ff84d4',r:'Эпический',fx:'smokeBlades',design:'nebulaAssassin',spell:'nebulaSlash',box:1,d:'Два асимметричных энергетических клинка, маска бездны и фиолетовые разрезы пространства.'}},
+ {h:20,skin:{n:'Страж созвездий',c:'#193461',a:'#a3f1ff',r:'Эпический',fx:'sigils',design:'constellationGuard',spell:'starShield',box:1,d:'Широкая броня из парящих плит, щит-созвездие и плечевые звёздные бастионы.'}},
+ {h:4,skin:{n:'Оракул луны',c:'#49537b',a:'#e0f9ff',r:'Эпический',fx:'moon',design:'moonPriest',spell:'moonBless',box:1,d:'Белая церемониальная мантия, посох-полумесяц и светящиеся лунные печати исцеления.'}},
+ {h:31,skin:{n:'Пожиратель метеоров',c:'#322b48',a:'#ffb66c',r:'Легендарный',fx:'embers',design:'meteorBeast',spell:'meteorImpact',box:1,d:'Массивный каменный силуэт, броня астероидов и пылающие метеоритные шипы.'}},
+ {h:32,skin:{n:'Ковач звёзд',c:'#253a67',a:'#aef8ff',r:'Легендарный',fx:'starfield',design:'starSmith',spell:'pulsarHammer',box:1,d:'Гигантский молот-пульсар, наковальня-орбита и руны из маленьких галактик.'}},
+ {h:35,skin:{n:'АРКАНА: Императрица вечных снов',c:'#241034',a:'#ffd5fc',r:'Аркана',fx:'dreamArcana',design:'dreamEmpress',spell:'dreamGate',box:1,d:'Новый облик: корона из лунных осколков, четыре парящие ленты, крылья сна, порталы на E и R.'}},
+ // ASHEN DYNASTY: 5 rare, 3 epic, 2 legendary, 1 arcana.
+ {h:34,skin:{n:'Наследник вулкана',c:'#4b2a27',a:'#ffae62',r:'Редкий',fx:'embers',design:'volcanoHeir',spell:'scaleFire',box:2,d:'Чешуйчатая броня, угольные наплечники и вулканические рога.'}},
+ {h:3,skin:{n:'Багровый палач',c:'#44171e',a:'#ff6263',r:'Редкий',fx:'smokeBlades',design:'crimsonExecutioner',spell:'execution',box:2,d:'Красный рваный плащ, глухая маска палача и два раскалённых серпа.'}},
+ {h:20,skin:{n:'Бастион пепла',c:'#423c3b',a:'#ffa45b',r:'Редкий',fx:'sparks',design:'ashBastion',spell:'lavaWall',box:2,d:'Тяжёлый осадный шлем, квадратный щит и трещины лавы на латах.'}},
+ {h:4,skin:{n:'Пепельный проповедник',c:'#543a2d',a:'#ffde9b',r:'Редкий',fx:'embers',design:'ashPreacher',spell:'ashPrayer',box:2,d:'Обгорелые молитвенные ленты, медная митра и кадило с живым дымом.'}},
+ {h:25,skin:{n:'Дух сгоревшего трона',c:'#332a36',a:'#ffb4a2',r:'Редкий',fx:'smokeBlades',design:'burntThrone',spell:'hauntChains',box:2,d:'Обугленная корона, цепи, призрачный дым и лезвие из тлеющих углей.'}},
+ {h:11,skin:{n:'Повелитель погребальных костров',c:'#341b22',a:'#ff8a4d',r:'Эпический',fx:'flames',design:'funeralNecro',spell:'funeralPyre',box:2,d:'Горящая погребальная маска, скелетный посох-факел и пепельные черепа.'}},
+ {h:36,skin:{n:'Кузнец имперской войны',c:'#50372e',a:'#f9be67',r:'Эпический',fx:'gears',design:'warEngineer',spell:'warTurret',box:2,d:'Бронзовый боевой экзоскелет, огненные сопла и пушка вместо обычного инструмента.'}},
+ {h:33,skin:{n:'Соколица алого пламени',c:'#6c252c',a:'#ffc75e',r:'Эпический',fx:'flames',design:'phoenixRanger',spell:'flameArrow',box:2,d:'Шлем-сокол, плащ с огненными перьями и золотой лук с жар-птицей.'}},
+ {h:31,skin:{n:'Титан магмы',c:'#2c262b',a:'#ff773d',r:'Легендарный',fx:'embers',design:'magmaTitan',spell:'lavaCrack',box:2,d:'Новая громоздкая каменная форма, лавовые жилы и расколотые вулканические пластины.'}},
+ {h:32,skin:{n:'Имперский каратель',c:'#46332d',a:'#ffcb64',r:'Легендарный',fx:'sigils',design:'imperialSmith',spell:'judgementHammer',box:2,d:'Угольное золото, корона-инсигния и громадный молот с раскалённым реактором.'}},
+ {h:34,skin:{n:'АРКАНА: Император изначального пламени',c:'#4a171b',a:'#fff29d',r:'Аркана',fx:'infernoArcana',design:'flameEmperor',spell:'dragonInferno',box:2,d:'Новая драконья форма: огненные крылья, тройная корона, вулканическое сердце и отдельные эффекты способностей.'}},
 ];
 for(const {h,skin} of SKIN_ADDITIONS)(SKIN[h]||(SKIN[h]=[])).push(skin);
 const skinOf=u=>{const L=SKIN[u.h];return u.sk&&L?L[u.sk-1]||null:null},curSk=i=>{const k=(PROF.sk||{})[i]|0;return k&&skOpen(i,k)?k:0},skValid=(h,k)=>SKIN[h]&&k>=1&&k<=SKIN[h].length?k:0;let GSK=0,SKT=null;
+// 0.1.2 • Unique cosmetic silhouettes. All geometry is visual; collisions, stats and skills are unchanged.
+function skinPolygon(points,fill,stroke='#101322',lw=1.4){g.beginPath();points.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.closePath();if(fill){g.fillStyle=fill;g.fill()}if(stroke){g.strokeStyle=stroke;g.lineWidth=lw;g.stroke()}}
+function skinDisk(x,y,rx,ry,color,stroke=null,lw=1.5){g.fillStyle=color;g.beginPath();g.ellipse(x,y,rx,ry,0,0,Math.PI*2);g.fill();if(stroke){g.strokeStyle=stroke;g.lineWidth=lw;g.stroke()}}
+function skinStar(x,y,sz,col,points=5,inner=.48){g.beginPath();for(let j=0;j<points*2;j++){const a=-Math.PI/2+j*Math.PI/points,rr=j%2?sz*inner:sz;j?g.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr):g.moveTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr)}g.closePath();g.fillStyle=col;g.fill()}
+function skinCloak(fill,trim,tail=28){skinPolygon([[-14,-8],[-24,3],[-30,tail*.8],[-11,tail*.46],[0,13],[12,tail*.5],[30,tail], [22,-1],[12,-8]],fill,trim,2);skinPolygon([[-3,9],[-11,tail*.95],[-2,tail*.54],[4,9]],trim,null)}
+function skinBody(fill,trim,shape='orb'){g.fillStyle=fill;g.strokeStyle=trim;g.lineWidth=2.7;g.beginPath();if(shape==='diamond'){g.moveTo(0,-17);g.lineTo(17,-3);g.lineTo(13,14);g.lineTo(0,21);g.lineTo(-15,12);g.lineTo(-17,-6);g.closePath()}else if(shape==='square'){g.moveTo(-16,-15);g.lineTo(16,-15);g.lineTo(18,14);g.lineTo(-17,16);g.closePath()}else g.arc(0,0,16,0,7);g.fill();g.stroke();skinDisk(-4,-6,5,3,'#ffffff20')}
+function skinHood(fill,trim){skinPolygon([[-12,-10],[-15,-24],[-6,-30],[0,-25],[9,-29],[14,-19],[13,-8],[4,-13],[-5,-12]],fill,trim,2);skinDisk(0,-18,7,5,'#151324')}
+function skinMask(fill,eye='#fff'){skinPolygon([[-10,-12],[-8,-23],[8,-23],[11,-12],[8,-4],[-8,-4]],fill,'#16121d',1);skinDisk(-4,-14,2.1,1.5,eye);skinDisk(4,-14,2.1,1.5,eye)}
+function skinCapeWings(fill,edge,len=31){for(const q of [-1,1]){g.save();g.scale(q,1);skinPolygon([[8,1],[17,-17],[len,-23],[len-8,-3],[len-2,15],[16,12]],fill,edge,2);g.restore()}}
+function skinCrown(fill,gem='#fff',height=30){skinPolygon([[-12,-14],[-14,-height],[-6,-height+8],[0,-height-9],[6,-height+8],[14,-height],[12,-14]],fill,gem,1.7);skinStar(0,-height+1,3,gem)}
+function skinArmor(left,right,center){skinPolygon([[-18,-8],[-26,-12],[-29,-2],[-19,7],[-12,1]],left,right,2);skinPolygon([[18,-8],[26,-12],[29,-2],[19,7],[12,1]],left,right,2);skinPolygon([[-10,-11],[11,-11],[16,7],[0,16],[-14,7]],center,right,2)}
+function skinShield(fill,trim,type='hex'){g.save();g.translate(-23,10);if(type==='square')skinPolygon([[-11,-18],[9,-18],[11,14],[-11,17]],fill,trim,2.8);else skinPolygon([[-10,-18],[9,-15],[14,2],[0,22],[-12,2]],fill,trim,2.7);skinStar(0,-1,5.5,trim);g.restore()}
+function skinWeaponBlade(fill,glint,side=1,wide=false){g.save();g.scale(1,side);skinPolygon([[8,6],[22,1],[wide?41:36,-7],[29,12],[12,14]],fill,glint,1.7);g.strokeStyle=glint;g.lineWidth=1.7;g.beginPath();g.moveTo(12,6);g.lineTo(34,-4);g.stroke();g.restore()}
+function skinBow(wood,glint){g.strokeStyle=wood;g.lineWidth=4;g.beginPath();g.arc(19,1,22,-1.2,1.23);g.stroke();g.strokeStyle=glint;g.lineWidth=1.5;g.beginPath();g.moveTo(27,-20);g.lineTo(27,22);g.stroke();skinPolygon([[7,0],[34,-2],[28,-5],[43,0],[28,5],[34,2]],glint,null)}
+function skinStaff(col,crystal){g.strokeStyle=col;g.lineWidth=4.5;g.lineCap='round';g.beginPath();g.moveTo(14,17);g.lineTo(33,-22);g.stroke();skinPolygon([[34,-36],[42,-24],[34,-11],[26,-24]],crystal,'#f7ffff',1.8)}
+function skinHammer(iron,edge,core){g.strokeStyle=edge;g.lineWidth=4.5;g.beginPath();g.moveTo(4,14);g.lineTo(30,-17);g.stroke();skinPolygon([[15,-28],[41,-32],[48,-22],[38,-8],[16,-10]],iron,edge,2.2);skinDisk(31,-19,6,6,core)}
+function skinRunes(col,rot=0){g.save();g.rotate(rot);g.strokeStyle=col;g.lineWidth=1.3;for(let j=0;j<4;j++){g.beginPath();const a=j*Math.PI/2;g.moveTo(Math.cos(a)*13,Math.sin(a)*13);g.lineTo(Math.cos(a)*19,Math.sin(a)*19);g.lineTo(Math.cos(a+.2)*23,Math.sin(a+.2)*23);g.stroke()}g.restore()}
+function skinGear(cx,cy,rad,fill,edge,turn=0){g.save();g.translate(cx,cy);g.rotate(turn);g.fillStyle=fill;for(let j=0;j<8;j++){g.save();g.rotate(j*Math.PI/4);g.fillRect(rad-2,-3,7,6);g.restore()}skinDisk(0,0,rad,rad,fill,edge,2);skinDisk(0,0,rad*.3,rad*.3,edge);g.restore()}
+function skinSkull(cx,cy,color='#f4d6cb',fire='#b56fff'){skinDisk(cx,cy,6,5.5,color,'#1a1520',1.2);skinPolygon([[cx-3,cy+3],[cx-2,cy+9],[cx+2,cy+9],[cx+3,cy+3]],color,'#1a1520',1);skinDisk(cx-2,cy,1.5,2,fire);skinDisk(cx+2,cy,1.5,2,fire)}
+function skinFlame(px,py,color,height=15){skinPolygon([[px,py],[px-5,py-7],[px-1,py-height],[px+3,py-8],[px+6,py-14],[px+7,py-5]],color,null);skinPolygon([[px,py-1],[px-2,py-6],[px+1,py-height*.67],[px+3,py-3]],'#fff0a5',null)}
+function skinFeather(cx,cy,len,col,angle){g.save();g.translate(cx,cy);g.rotate(angle);skinPolygon([[0,0],[len*.4,-4],[len,0],[len*.4,4]],col,'#261625',1);g.restore()}
+function drawUniqueSkin(u,sk,x,y,r,fa){
+ const t=(SKT!=null?SKT:(typeof T==='number'?T:0))+(u.id||0)*.7;
+ g.save();g.translate(x,y);g.scale(r/16,r/16);g.lineJoin='round';g.lineCap='round';
+ // Different costumes use distinct geometry, rather than recolouring the default circular unit.
+ switch(sk.design){
+ case 'cometDream':{
+  skinCloak('#172f65','#69d5ed',31);skinBody('#24395c','#88bbff','diamond');skinHood('#19244e','#b9d8ff');skinMask('#dfeeff','#62eaff');
+  for(const q of [-1,1]){g.save();g.scale(q,1);skinPolygon([[8,13],[11,27],[18,43],[16,21]],'#62c8f988','#e2fbff',1);g.restore()}
+  for(let i=0;i<4;i++)skinStar(Math.sin(t*.8+i)*26,Math.cos(t*.65+i*2)*28,2.3+i%2,'#d8fcff');skinStaff('#c9d6fa','#6deaf6');break}
+ case 'starRanger':{
+  skinCloak('#26365a','#bdc9e3',26);skinBody('#326a8a','#b9dfff','diamond');skinHood('#1b3153','#f8d990');skinMask('#1b273c','#e9d49a');
+  skinStar(-19,8,7,'#e8c96a',6);skinBow('#fff0bb','#ffffda');for(let i=0;i<3;i++){skinStar(-24+i*9,24+i%2*5,2,'#e6faff')}break}
+ case 'voidEngineer':{
+  skinCapeWings('#293757','#66dadb',26);skinBody('#425773','#53eed8','square');skinArmor('#43618c','#65c8cf','#203956');
+  skinPolygon([[-12,-20],[12,-20],[18,-9],[-18,-9]],'#243e58','#90fcf2');for(let i=-1;i<=1;i++)skinDisk(i*9,-15,4,5,i?'#a1e2ff':'#ffed8f','#111b35',1.5);
+  skinGear(-23,14,7,'#375a70','#79d9ea',t);skinDisk(28,-24,6,6,'#455e78','#8cf7ec');skinDisk(28,-24,2.3,2.3,'#f7ffff');g.strokeStyle='#92eaff';g.lineWidth=1.8;g.beginPath();g.moveTo(17,-14);g.lineTo(28,-24);g.stroke();break}
+ case 'eclipseNecro':{
+  skinCloak('#271a40','#a58bce',30);skinBody('#472850','#b4a2e5','diamond');skinHood('#211831','#d2adf3');skinMask('#1f1431','#e8ccff');
+  skinDisk(0,-30,13,13,'#ecd5ff');skinDisk(5,-34,11,11,'#241935');skinCrown('#8061aa','#e3c7ff',29);skinStaff('#65508a','#d8baff');skinSkull(-24,14,'#d8c4e8','#9b75f2');break}
+ case 'galaxyGhost':{
+  skinCloak('#7bbcf144','#91eeff',38);skinPolygon([[-9,-22],[6,-19],[13,13],[6,32],[-1,23],[-10,34],[-17,8]],'#5b74c088','#d7efff',1.5);skinDisk(-2,-11,12,10,'#8cbbf388','#e9f9ff',2);
+  for(let j=0;j<5;j++)skinStar(-18+(j*11)%34,-14+(j*17)%45,1.7+j%2,'#fff0e6');skinWeaponBlade('#b5daf67a','#e6ffff',1);break}
+ case 'nebulaAssassin':{
+  skinCapeWings('#4c287fa8','#da8aff',28);skinBody('#4b216b','#e884f2','diamond');skinHood('#23113d','#ff94cf');skinMask('#31164d','#fff0ff');
+  skinWeaponBlade('#ed6df6','#ffe7ff',1,true);skinWeaponBlade('#a56eff','#facdff',-1,true);skinStar(0,-30,4,'#ff83ce',4);g.strokeStyle='#e47cfa';g.lineWidth=2;g.beginPath();g.arc(26,-19,6,-1.5,1);g.stroke();break}
+ case 'constellationGuard':{
+  skinCapeWings('#244486','#bbf7ff',30);skinBody('#1b3b71','#b0ecff','square');skinArmor('#4c86b8','#bdfaff','#355c99');
+  skinShield('#3869a1','#f3fdff');skinDisk(0,-20,9,8,'#d5faff','#213b79');skinStar(0,-20,4,'#65c4ff',6);skinPolygon([[17,-27],[27,-39],[33,-19]],'#78c9ff','#fff');skinPolygon([[-17,-27],[-27,-39],[-33,-19]],'#78c9ff','#fff');skinRunes('#d8fdff',t*.2);break}
+ case 'moonPriest':{
+  skinCloak('#e4eef0','#add8fb',35);skinBody('#d8ecfa','#72a1d2','diamond');skinHood('#f3f6f5','#b0dbff');skinDisk(0,-18,6,6,'#426b95');
+  g.strokeStyle='#fff9d9';g.lineWidth=3.3;g.beginPath();g.arc(32,-24,11,-1.8,1.65);g.stroke();skinDisk(36,-28,9,9,'#eafaff');skinDisk(40,-31,8,8,'#284476');g.strokeStyle='#b4d8fb';g.lineWidth=4;g.beginPath();g.moveTo(28,-14);g.lineTo(15,21);g.stroke();skinStar(-18,15,6,'#d1ffff',8);break}
+ case 'meteorBeast':{
+  skinCapeWings('#383450','#f28b58',34);skinBody('#383846','#ff9b55','square');skinArmor('#554c4c','#ffc173','#33313e');
+  for(let j=0;j<5;j++){const xx=-22+j*11;skinPolygon([[xx,-18],[xx+5,-42+(j%2)*7],[xx+11,-17]],'#4b4249','#ffb46a',1.7)}skinMask('#333246','#ffc260');skinDisk(0,6,5,5,'#ff872f');skinFlame(0,11,'#f96a42',15);break}
+ case 'starSmith':{
+  skinBody('#294776','#a8f2ff','square');skinArmor('#467bb2','#d6fdff','#3b5a85');skinMask('#193b66','#97f8ff');
+  skinHammer('#376aa9','#f7ffff','#8cffff');skinGear(-21,-23,8,'#4787b6','#bbffff',t*.8);skinStar(-25,11,8,'#87eaff',7);skinRunes('#d5fbff',t*.2);break}
+ case 'dreamEmpress':{
+  skinCapeWings('#ad7bdf8c','#ffe3fa',38);skinCloak('#522968','#eea8ee',37);skinBody('#49235f','#f8bdfc','diamond');skinMask('#251038','#ffe8ff');skinCrown('#a55ac6','#fff2fe',39);
+  for(const q of [-1,1])for(let j=0;j<2;j++){g.save();g.scale(q,1);skinPolygon([[8+j*5,11],[14+j*7,26],[18+j*9,39],[12+j*4,29]],'#d789e4aa','#ffe6ff',1.2);g.restore()}
+  skinDisk(0,5,8,8,'#ffe7ff');skinDisk(0,5,5,5,'#ad6aff');skinStaff('#ffddff','#e5b9ff');for(let j=0;j<4;j++)skinStar(Math.cos(t*.8+j*Math.PI/2)*33,Math.sin(t*.8+j*Math.PI/2)*22,3,'#fff2fd');break}
+ case 'volcanoHeir':{
+  skinCapeWings('#5c2829','#fa773a',27);skinBody('#60332e','#ee9450','diamond');skinArmor('#683d32','#ffac63','#53312c');
+  for(const q of [-1,1]){g.save();g.scale(q,1);skinPolygon([[6,-14],[13,-32],[17,-23],[15,-9]],'#432528','#ffae6c',1.7);g.restore()}
+  skinMask('#56312b','#ffda87');skinPolygon([[-5,7],[0,-3],[5,7],[0,14]],'#ff812c','#fdd477',2);break}
+ case 'crimsonExecutioner':{
+  skinCloak('#651c26','#ff485e',36);skinBody('#4a1420','#c44453','diamond');skinHood('#25111a','#9b2437');skinMask('#2b1620','#ef343b');
+  for(const q of [-1,1]){g.save();g.scale(1,q);skinPolygon([[10,2],[25,-8],[36,-6],[31,9],[18,15]],'#792b35','#ff7372',1.6);g.restore()}
+  skinPolygon([[-5,-34],[0,-41],[5,-34]],'#ff686b');break}
+ case 'ashBastion':{
+  skinCapeWings('#403b3d','#dc8453',29);skinBody('#34343a','#f29851','square');skinArmor('#626060','#f5a55d','#3f3e45');skinShield('#3c3b43','#ffb76b','square');
+  skinPolygon([[-13,-22],[14,-22],[18,-10],[-17,-10]],'#34303a','#d6a679',2);for(let i=0;i<3;i++){g.strokeStyle='#ff883e';g.lineWidth=1.7;g.beginPath();g.moveTo(i*7-10,0);g.lineTo(i*7-8,8);g.stroke()}break}
+ case 'ashPreacher':{
+  skinCloak('#684b32','#f4c182',38);skinBody('#754531','#e7a468','diamond');skinHood('#7a543d','#f5d299');skinPolygon([[-14,-23],[-8,-34],[8,-34],[14,-23]],'#bd8c56','#ffe4a0',2);
+  skinDisk(0,-19,6,6,'#372625');g.strokeStyle='#f3ba74';g.lineWidth=3.7;g.beginPath();g.moveTo(15,18);g.lineTo(31,-19);g.stroke();skinDisk(32,-23,7,9,'#7d4b31','#ffda9c');skinFlame(32,-25,'#ff7e3c',18);break}
+ case 'burntThrone':{
+  skinCloak('#644d4d73','#ffac8c',38);skinBody('#3e343a','#ffb188','diamond');skinCrown('#33242a','#ffbd8e',32);skinMask('#2b252d','#ff6b57');
+  for(let j=0;j<3;j++){g.strokeStyle='#b88f7d';g.lineWidth=3;g.beginPath();g.moveTo(-29+j*6,16);g.quadraticCurveTo(-33+j*5,27,-18+j*6,34);g.stroke();skinDisk(-18+j*6,34,3,3,'#ff7f53')}
+  skinWeaponBlade('#ff866b','#ffe3b0',1);skinFlame(-4,19,'#ed6842',12);break}
+ case 'funeralNecro':{
+  skinCapeWings('#481b26','#fa8d4a',31);skinCloak('#37151c','#f16d40',35);skinBody('#55252c','#fe995a','diamond');skinMask('#21131d','#ffe4a1');
+  skinSkull(0,-23,'#f4c5a5','#ff7c4a');skinFlame(0,-30,'#f14b2c',22);skinStaff('#996a48','#f27d3a');for(const q of [-1,1]){skinSkull(q*23,15,'#b9977e','#ff6b46')}break}
+ case 'warEngineer':{
+  skinCapeWings('#7c4532','#ffc166',25);skinBody('#785335','#ffcc8b','square');skinArmor('#8c6546','#ffe0a6','#67523c');skinGear(-22,7,9,'#b78b4f','#ffe3a6',t);
+  skinPolygon([[3,-18],[25,-18],[28,-9],[6,-9]],'#60442b','#ffc36b',2);g.fillStyle='#c17e4b';g.fillRect(13,-19,21,11);g.fillStyle='#302727';g.fillRect(30,-17,11,7);skinFlame(-23,27,'#fc632d',13);skinFlame(34,-18,'#ff9e3a',10);break}
+ case 'phoenixRanger':{
+  skinCapeWings('#bf302d','#ffbc58',36);for(const q of [-1,1])for(let j=0;j<3;j++)skinFeather(q*(14+j*5),-8+j*9,15,'#ff8d3c',q*.5+j*.2);
+  skinBody('#86373b','#ffe09c','diamond');skinPolygon([[-10,-12],[-12,-27],[0,-36],[12,-27],[11,-13]],'#b75a36','#ffd48c',1.7);skinMask('#42242c','#fff1bc');
+  skinBow('#e9b45c','#fff0af');skinFlame(38,0,'#ff762f',15);break}
+ case 'magmaTitan':{
+  skinCapeWings('#342e31','#f36631',38);skinBody('#302f36','#fd6934','square');skinArmor('#575054','#ff945c','#382d30');
+  for(let j=0;j<6;j++){const a=-2.8+j*.85;skinPolygon([[Math.cos(a)*17,Math.sin(a)*17],[Math.cos(a)*33,Math.sin(a)*33],[Math.cos(a+.22)*17,Math.sin(a+.22)*17]],'#25252c','#f98b56',1.7)}
+  for(let j=0;j<3;j++){g.strokeStyle=j%2?'#ffce72':'#ff5a27';g.lineWidth=3.5;g.beginPath();g.moveTo(-16+j*11,-9);g.lineTo(-9+j*11,7);g.lineTo(-17+j*11,16);g.stroke()}skinFlame(0,-17,'#ff7a25',19);break}
+ case 'imperialSmith':{
+  skinCapeWings('#61422f','#e9bd6e',32);skinBody('#56432f','#f4d28b','square');skinArmor('#856b4a','#ffe6a6','#4e402e');skinCrown('#d6a44f','#fff3c9',29);skinMask('#362a24','#fff2bd');
+  skinHammer('#7e4d31','#ffe2a4','#ff7d37');skinPolygon([[27,-27],[36,-34],[40,-24],[32,-18]],'#ffc366','#fff3c2',1.8);skinRunes('#ffc06c',t*.1);break}
+ case 'flameEmperor':{
+  skinCapeWings('#ca3824b0','#ffd078',43);skinCloak('#5a1d22','#ff773d',31);skinBody('#722e26','#ffb659','diamond');skinArmor('#8d3b2c','#ffe29a','#723128');skinCrown('#ff9d43','#fff5be',39);skinMask('#45151e','#fff1ac');
+  for(const q of [-1,1]){g.save();g.scale(q,1);skinPolygon([[14,-16],[20,-44],[31,-32],[24,-10]],'#b93e2d','#ffd177',1.9);g.restore()}
+  skinDisk(0,5,8,8,'#ffb635','#fff0a1');skinFlame(0,8,'#f95326',19);for(let j=0;j<5;j++)skinFlame(-22+j*11,25,'#ff8c3b',12+j%2*5);break}
+ }
+ g.restore()
+}
+// Distinct ability-ring motifs, synchronized via the existing generic FX event with two optional extra fields.
+function drawUniqueSpellFx(f){
+ const k=f.cos,slot=f.slot||0,base=Math.max(8,Math.min(450,f.r)),t=typeof T==='number'?T:0;
+ g.save();g.translate(f.x,f.y);g.rotate((.55-f.t)*.5);const n=slot===2?11:slot===1?8:6;
+ const point=(a,rr)=>[Math.cos(a)*rr,Math.sin(a)*rr],line=(a,b,col=f.c,lw=3)=>{g.strokeStyle=col;g.lineWidth=lw;g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1]);g.stroke()};
+ const dot=(x,y,rr,c=f.c)=>{g.fillStyle=c;g.beginPath();g.arc(x,y,rr,0,7);g.fill()};
+ const rays=(len=1)=>{for(let j=0;j<n;j++){const a=j*2*Math.PI/n+t*.2;line(point(a,base*.55),point(a,base*len),f.c,2.5)}};
+ switch(k){
+ case 'comet':for(let j=0;j<n;j++){const a=j*2*Math.PI/n;skinStar(...point(a,base*.75),Math.max(3,base*.028),'#e9fcff');line(point(a,base*.83),point(a+.15,base*1.08),'#82dfff',2)}break;
+ case 'arrowStars':for(let j=0;j<n;j++){const a=j*2*Math.PI/n;const p=point(a,base*.8);line(p,point(a,base*1.12),'#fff2bb',2);skinStar(p[0],p[1],Math.max(3,base*.03),'#fffad1',4)}break;
+ case 'satellite':for(let j=0;j<3;j++){const a=t*.6+j*2.094;const p=point(a,base*.78);skinGear(p[0],p[1],Math.max(4,base*.07),'#356f7f','#91f6e7',a);line([0,0],p,'#70ceea',1.5)}break;
+ case 'eclipse':dot(0,0,Math.min(40,base*.19),'#e1c1ff');dot(base*.052,-base*.052,Math.min(38,base*.16),'#332547');rays(.9);break;
+ case 'ghostEcho':for(let j=0;j<5;j++){g.strokeStyle='#c4f4ff';g.lineWidth=3;g.beginPath();g.ellipse(0,0,base*(.37+j*.13),base*(.3+j*.1),0,-1.3,1.4);g.stroke()}break;
+ case 'nebulaSlash':for(let j=0;j<4;j++){const a=j*Math.PI/2+t*.2;line(point(a,base*.12),point(a+.25,base*1.16),j%2?'#ffb5f5':'#a48dff',3.5)}break;
+ case 'starShield':for(let j=0;j<8;j++){const a=j*2*Math.PI/8;line(point(a,base*.91),point(a+2*Math.PI/8,base*.91),'#b9f7ff',3);dot(...point(a,base*.91),Math.max(3,base*.025),'#e5ffff')}break;
+ case 'moonBless':for(let j=0;j<n;j++){const a=j*2*Math.PI/n;const p=point(a,base*.7);dot(p[0],p[1],Math.max(4,base*.05),'#f8f9e8');dot(p[0]+base*.02,p[1]-base*.02,Math.max(3,base*.04),'#668aba')}break;
+ case 'meteorImpact':for(let j=0;j<n;j++){const a=j*2*Math.PI/n;const p=point(a,base*.75);skinPolygon([p,point(a-.08,base*1.05),point(a+.15,base*1.1)],'#ff9959','#ffe0a2',1.5)}break;
+ case 'pulsarHammer':rays(1.02);skinStar(0,0,Math.min(50,base*.32),'#d6ffff',6);dot(0,0,Math.min(17,base*.13),'#6db9ed');break;
+ case 'dreamGate':for(let j=0;j<3;j++){g.strokeStyle=['#ffb1f2','#8ad2ff','#fff0fb'][j];g.lineWidth=3;g.beginPath();g.ellipse(0,0,base*(.5+j*.18),base*(.24+j*.12),j*.55,0,7);g.stroke()}for(let j=0;j<9;j++){const p=point(j*2*Math.PI/9,base*.9);skinStar(p[0],p[1],Math.max(4,base*.045),'#fff0fa',6)}break;
+ case 'scaleFire':for(let j=0;j<n;j++){const a=j*2*Math.PI/n,p=point(a,base*.82);skinFlame(p[0],p[1],'#ff8547',Math.max(10,base*.13))}break;
+ case 'execution':for(let j=0;j<4;j++){const a=j*1.57;line(point(a-.25,base*.4),point(a+.2,base*1.1),'#ff6263',4);line(point(a+.12,base*.48),point(a-.19,base*1.02),'#f5babb',2)}break;
+ case 'lavaWall':for(let j=0;j<n;j++){const a=j*2*Math.PI/n;line(point(a,base*.75),point(a+.15,base*1.05),'#ef873e',8);dot(...point(a,base*.75),Math.max(4,base*.04),'#fff1ad')}break;
+ case 'ashPrayer':for(let j=0;j<n;j++){const a=j*2*Math.PI/n,p=point(a,base*.77);skinStar(p[0],p[1],Math.max(4,base*.055),'#f2c587',4);line(p,point(a,base*.96),'#8f5a44',1.5)}break;
+ case 'hauntChains':for(let j=0;j<n;j++){const a=j*2*Math.PI/n,p=point(a,base*.78);g.strokeStyle='#c9a19b';g.lineWidth=3;g.beginPath();g.ellipse(p[0],p[1],Math.max(5,base*.07),Math.max(3,base*.045),a,0,7);g.stroke()}break;
+ case 'funeralPyre':for(let j=0;j<5;j++){const p=point(j*2*Math.PI/5,base*.8);skinSkull(p[0],p[1],'#f4ccaa','#ff6a31')}break;
+ case 'warTurret':for(let j=0;j<4;j++){const a=j*Math.PI/2,p=point(a,base*.8);skinGear(p[0],p[1],Math.max(4,base*.065),'#ad834c','#ffe3a2',t);line(point(a,base*.4),p,'#ff9a54',4)}break;
+ case 'flameArrow':for(let j=0;j<n;j++){const a=j*2*Math.PI/n,p=point(a,base*.75);skinPolygon([p,point(a-.1,base*1.05),point(a+.1,base*1.05)],'#ffd568','#fa6634',2);skinStar(p[0],p[1],Math.max(3,base*.025),'#fff7cb')}break;
+ case 'lavaCrack':for(let j=0;j<n;j++){const a=j*2*Math.PI/n;line(point(a,base*.15),point(a+.08,base*.52),'#ff6a2b',5);line(point(a+.08,base*.52),point(a-.06,base),'#ffc05b',4)}break;
+ case 'judgementHammer':rays(1);skinStar(0,0,Math.min(60,base*.29),'#ffd18c',8,.73);dot(0,0,Math.min(24,base*.1),'#fff5c4');break;
+ case 'dragonInferno':for(let j=0;j<n;j++){const a=j*2*Math.PI/n,p=point(a,base*.79);skinFlame(p[0],p[1],j%2?'#fa692f':'#ffd158',Math.max(14,base*.19))}skinStar(0,0,Math.min(55,base*.25),'#fff3a6',9);break;
+ }
+ g.restore()
+}
+
 function skinFx(u,sk,x,y,r,fa){const t=(SKT!=null?SKT:(typeof T=='number'?T:0))+(u.id||0)*.7;g.save();
  g.globalAlpha=.6;g.strokeStyle=sk.a;g.lineWidth=2;g.beginPath();g.arc(x,y,r+1,0,7);g.stroke();g.globalAlpha=1;
  g.save();g.translate(x,y);g.rotate(fa);g.fillStyle=sk.a;g.beginPath();g.arc(r*.5,-r*.28,r*.11,0,7);g.arc(r*.5,r*.28,r*.11,0,7);g.fill();g.restore();
@@ -1561,6 +1701,7 @@ function drawHero(u){const H=HER[u.h],x=u.x,y=u.y,r=u.r,fa=u.fa==null?(u.team?2.
   case 36:g.fillStyle='#7b5a3e';g.fillRect(r*.3,-r*.6,r*1.25,r*1.2);g.fillStyle='#ffcc5c';g.fillRect(r*1.2,-r*.35,r*.65,r*.7);g.strokeStyle='#f0f6ff';g.lineWidth=3;g.beginPath();g.arc(r*1.55,0,r*.85,0,6.28);g.stroke();g.fillStyle='#50e4ed';g.beginPath();g.arc(r*1.55,0,r*.27,0,6.28);g.fill();break;
 }
  g.restore();
+ if(sk&&sk.design)drawUniqueSkin(u,sk,x,y,r,fa);
  if(sk)skinFx(u,sk,x,y,r,fa);
  if(u===P){g.strokeStyle='#fff';g.lineWidth=3;g.beginPath();g.arc(x,y,r+11+Math.sin(T*5)*1.5,0,7);g.stroke()}
  if(u.sh>0){g.strokeStyle='#6cf';g.lineWidth=4;g.beginPath();g.arc(x,y,r+6,0,7);g.stroke()}
@@ -1606,7 +1747,7 @@ const fmtMsg=m=>String(m).replace('§H',ROLE=='g'?((MP&&MP.hn)||'Соперни�
 const who=u=>u.pl?'§H':u.rm?'§G':HER[u.h].n+' ('+TN[u.team]+')';
 const rl=m=>{const r=rankOf(m);return RANKS[r.i].n+(r.i<7?' '+RN5[r.st-1]:'')};
 function evq(to,a){EVQ.push([++evSeq,to,...a]);if(EVQ.length>120)EVQ.shift()}
-function fxp(o){fx.push(o);if(ROLE!='h')return;if(o.b){if(o.a&&(o.a.k=='creep'||o.a.k=='tower'||o.a.k=='jn'||o.a.k=='sum'))return;evq(2,['l',o.a.id,o.b.id==null?0:o.b.id,Math.round(o.b.x),Math.round(o.b.y),o.t])}else evq(2,['f',Math.round(o.x),Math.round(o.y),Math.round(o.r),o.c,o.t])}
+function fxp(o){fx.push(o);if(ROLE!='h')return;if(o.b){if(o.a&&(o.a.k=='creep'||o.a.k=='tower'||o.a.k=='jn'||o.a.k=='sum'))return;evq(2,['l',o.a.id,o.b.id==null?0:o.b.id,Math.round(o.b.x),Math.round(o.b.y),o.t])}else evq(2,['f',Math.round(o.x),Math.round(o.y),Math.round(o.r),o.c,o.t,o.cos||null,o.slot==null?-1:o.slot])}
 const em=(t,d)=>{if(NR)NR.emit(t,d).catch(()=>{})},cmd=o=>em('cmd',o),castUI=i=>ROLE=='g'?cmd({k:'c',i}):cast(P,i);
 const stat=u=>u.k=='hero'?['h',u.id,u.team,u.h,u.slot,u.r,Math.round(u.mhp),u.sk|0]:u.k=='tower'?['t',u.id,u.team,u.tier,u.l,u.r,u.rg,Math.round(u.mhp)]:u.k=='throne'?['T',u.id,u.team,u.r,Math.round(u.mhp)]:u.k=='creep'?['c',u.id,u.team,u.l,(u.mega?1:0)|(u.ranged?2:0),Math.round(u.mhp)]:u.k=='jn'?['j',u.id,u.cp,u.jt,u.r,Math.round(u.mhp)]:u.k=='sum'?['m',u.id,u.team,u.sty,u.r,Math.round(u.mhp),u.ch|0,u.sk|0]:['n',u.id,u.boss,u.a,u.l,u.r,Math.round(u.mhp)];
 function mkStatic(a){if(UM.has(a[1]))return;let u;switch(a[0]){
@@ -1673,7 +1814,7 @@ function onSnap(msg){if(ROLE!='g'||msg.isMe||!msg.data)return;const d=msg.data;i
 function onCrea(msg){if(ROLE!='g'||msg.isMe||!msg.data)return;const d=msg.data;if(d.q<CB.q)return;if(d.q>CB.q){CB.q=d.q;CB.ids=new Set();CB.cnt=0;CB.n=d.n}
  for(const a of d.l){CB.ids.add(a[0]);const u=UM.get(a[0]);if(!u){needs.add(a[0]);continue}setPos(u,a[1],a[2]);u.hp=a[3];u.fa=a[4];u.dead=false}
  if(++CB.cnt>=CB.n){for(const u of U)if((u.k=='creep'||u.k=='jn'||u.k=='sum')&&!CB.ids.has(u.id)){UM.delete(u.id);u.gone=1}U=U.filter(u=>!u.gone)}}
-function applyEv(e){const t=e[2];if(t=='s')snd(e[3],e[4],e[5],e[6],1);else if(t=='t')toast.push({m:fmtMsg(e[3]),t:6});else if(t=='f')fx.push({x:e[3],y:e[4],r:e[5],c:e[6],t:e[7]});else if(t=='k'){const x={t:e[3],kt:e[4],k:e[5],kh:e[6],vt:e[7],v:e[8],vh:e[9],as:e[10]||[]};KL.push(x);if(KL.length>200)KL.shift();feedAdd(x)}
+function applyEv(e){const t=e[2];if(t=='s')snd(e[3],e[4],e[5],e[6],1);else if(t=='t')toast.push({m:fmtMsg(e[3]),t:6});else if(t=='f')fx.push({x:e[3],y:e[4],r:e[5],c:e[6],t:e[7],cos:e[8]||null,slot:e[9]??-1});else if(t=='k'){const x={t:e[3],kt:e[4],k:e[5],kh:e[6],vt:e[7],v:e[8],vh:e[9],as:e[10]||[]};KL.push(x);if(KL.length>200)KL.shift();feedAdd(x)}
  else if(t=='x'){FT.push({x:e[3],y:e[4],m:e[5],at:performance.now()})}
  else if(t=='M'){showMulti(e[3],e[4],e[5])}
  else if(t=='z'){ZN.push({k:e[3],x:e[4],y:e[5],r:e[6],r0:e[6],ttl:e[7],t0:T,x2:e[8],y2:e[9],w:e[10],r1:e[11]||e[6],vis:1})}
@@ -1975,7 +2116,7 @@ function draw(){g.setTransform(dpr,0,0,dpr,0,0);g.fillStyle='#0b120d';g.fillRect
   else{drawHero(u);heroOver(u)}
   if(u.st>0){g.fillStyle='#ffd23f';g.fillText('✦',u.x,u.y-u.r-26)}else if(u.sl>0){g.fillStyle='#8cf';g.fillText('❄',u.x,u.y-u.r-26)}}
 {const nw_=performance.now();FT=FT.filter(f=>nw_-f.at<1400);g.lineWidth=4;g.strokeStyle='#0008';g.font='bold 20px system-ui';for(const f of FT){const a=(nw_-f.at)/1400;g.globalAlpha=Math.max(0,1-a*a);g.fillStyle='#7be8ff';g.strokeText(f.m,f.x,f.y-30-a*40);g.fillText(f.m,f.x,f.y-30-a*40)}g.globalAlpha=1;g.font='bold 18px system-ui'}
- for(const f of fx){if(f.b?!(seen(VT,f.a.x,f.a.y)||seen(VT,f.b.x,f.b.y)):!seen(VT,f.x,f.y))continue;g.globalAlpha=Math.min(1,f.t*4);if(f.b){g.strokeStyle='#fff';g.lineWidth=3;g.beginPath();g.moveTo(f.a.x,f.a.y);g.lineTo(f.b.x,f.b.y);g.stroke()}else{g.strokeStyle=f.c;g.lineWidth=7;g.beginPath();g.arc(f.x,f.y,f.r,0,7);g.stroke()}g.globalAlpha=1}
+ for(const f of fx){if(f.b?!(seen(VT,f.a.x,f.a.y)||seen(VT,f.b.x,f.b.y)):!seen(VT,f.x,f.y))continue;g.globalAlpha=Math.min(1,f.t*4);if(f.b){g.strokeStyle='#fff';g.lineWidth=3;g.beginPath();g.moveTo(f.a.x,f.a.y);g.lineTo(f.b.x,f.b.y);g.stroke()}else{g.strokeStyle=f.c;g.lineWidth=7;g.beginPath();g.arc(f.x,f.y,f.r,0,7);g.stroke();if(f.cos)drawUniqueSpellFx(f)}g.globalAlpha=1}
  fogOverlay()}
 function drawMM(){const n=mm.width,k=n/W;mg.clearRect(0,0,n,n);mg.fillStyle='#2f6a2b';mg.fillRect(0,0,n,n);
  mg.fillStyle='#42334e';mg.beginPath();mg.moveTo(0,0);mg.lineTo(n,0);mg.lineTo(n,n);mg.closePath();mg.fill();
@@ -2082,6 +2223,23 @@ if(PROF.cosmeticVer!==3){
  PROF.arcanaMiss=0;
  PROF.cosmeticVer=3;
  saveProf();
+}
+
+// Preserve unlocks and equipped choices when the 22 new chest designs replace the earlier placeholders.
+// Original-collection keys do not change. Previous new-chest keys map to matching chest/rarity rewards.
+if(PROF.cosmeticLayoutVer!==2){
+ const oldToNew={
+  '35:1':'35:1','33:2':'33:2','36:2':'36:2','28:1':'11:1','17:1':'25:1',
+  '2:2':'3:2','25:1':'20:1','32:1':'4:1','27:2':'31:1','18:1':'32:1','35:2':'35:2',
+  '34:1':'34:1','32:2':'3:3','0:2':'20:2','12:1':'4:2','16:1':'25:2',
+  '6:2':'11:2','10:1':'36:3','29:1':'33:3','24:2':'31:2','3:2':'32:2','34:2':'34:2'
+ };
+ const oldOwn=PROF.owned||{},own={};
+ for(const key of Object.keys(oldOwn)){if(!oldOwn[key])continue;own[oldToNew[key]||key]=1}
+ const oldEq=PROF.sk||{},eq={};
+ for(const [h,k] of Object.entries(oldEq)){const key=h+':'+k,newKey=oldToNew[key]||key;
+  if(!own[newKey])continue;const [nh,nk]=newKey.split(':').map(Number);eq[nh]=nk}
+ PROF.owned=own;PROF.sk=eq;PROF.cosmeticLayoutVer=2;saveProf();
 }
 
 function rankOf(m){let i=0;for(let k=0;k<8;k++)if(m>=RANKS[k].min)i=k;if(i==7)return{i,st:0,prog:1,next:0};const lo=RANKS[i].min,w=(RANKS[i+1].min-lo)/5,q=Math.floor((m-lo)/w);return{i,st:q+1,prog:(m-lo)/w-q,next:Math.ceil(lo+w*(q+1)-m)}}
@@ -2192,7 +2350,7 @@ function lbHTML(){const all=lbRows(),row=(r,i)=>{const rk=rankOf(r.mmr||0);retur
  let h=all.slice(0,50).map(row).join('');const mi=all.findIndex(r=>r.id==devId);if(mi>=50)h+='<div style="text-align:center;opacity:.6">···</div>'+row(all[mi],mi);return h}
 function rankBlock(sz){const cal=PROF.g<CAL,r=rankOf(PROF.mmr),rg=cal?'':rankRange(),cf=conf(),sub=cal?'Идёт калибровка: осталось '+(CAL-PROF.g)+' игр':PROF.mmr+' ММР'+(r.i<7?' · до следующей звезды '+r.next:'');
  return '<div class="prof"><div style="min-width:'+(sz+10)+'px;text-align:center">'+rankMedal(sz)+'</div><div style="flex:1;min-width:0">'+(PROF.nick?'<div class="nk">Профиль игрока</div><div style="font-size:18px;font-weight:800;margin-bottom:2px">'+esc(PROF.nick)+'</div>':'')+'<div class="rn">'+rankName()+'</div><div class="rank-band">'+sub+'</div><div class="pr"><i style="width:'+Math.round((cal?PROF.g/CAL:r.prog)*100)+'%"></i></div>'+(cal?'<small>Калибровка идёт. После 10 игр откроется постоянный ранг.</small>':'<small>Уверенность рейтинга: <b>'+cf+'%</b>'+(rg&&cf<85?' · диапазон '+rg:'')+'</small><div class="pr" style="height:4px;margin:4px 0 6px"><i style="width:'+cf+'%;background:linear-gradient(90deg,#7fe39a,#d7ffd3)"></i></div>')+'<small>Победы '+PROF.w+' · Поражения '+PROF.l+(!cal&&PROF.peak>PROF.mmr?' · пик '+PROF.peak:'')+'</small></div></div>'}
-function portrait(i,sz,sk){sk=sk|0;const k=i+'_'+sz+'_'+sk;if(PORT[k])return PORT[k];const c=document.createElement('canvas');c.width=c.height=sz*2;const x=c.getContext('2d'),old=g;g=x;x.scale(sz*2/70,sz*2/70);try{drawHero({h:i,sk,x:35,y:38,r:16,team:0,fa:-.6,lvl:1,hp:1,mhp:1,noUI:1,sh:0,inv:0,pl:0})}catch(e){}g=old;return PORT[k]='<img width="'+sz+'" height="'+sz+'" src="'+c.toDataURL()+'">'}
+function portrait(i,sz,sk){sk=sk|0;const k=i+'_'+sz+'_'+sk;if(PORT[k])return PORT[k];const c=document.createElement('canvas');c.width=c.height=sz*2;const x=c.getContext('2d'),old=g;g=x;x.scale(sz*2/105,sz*2/105);try{drawHero({h:i,sk,x:52,y:56,r:15,team:0,fa:-.6,lvl:1,hp:1,mhp:1,noUI:1,sh:0,inv:0,pl:0})}catch(e){}g=old;return PORT[k]='<img width="'+sz+'" height="'+sz+'" src="'+c.toDataURL()+'">'}
 const LOOT_COST=150,SKIN_PRICES={'Редкий':500,'Эпический':1200,'Легендарный':2700,'Аркана':6900},lvNeed=l=>40+3*l,
 MEDAL=[{n:'Бронзовая медаль',rim:'#8a4f1d',face:'#d8975a',hi:'#ffe0b8',gem:'#ffb27a'},{n:'Серебряная медаль',rim:'#6f7b8c',face:'#cfd8e4',hi:'#ffffff',gem:'#a8d4ff'},{n:'Золотая медаль',rim:'#a87a0c',face:'#ffd45a',hi:'#fff5c0',gem:'#ff8a3d'},{n:'Платиновая медаль',rim:'#2f8fa6',face:'#bff3ff',hi:'#ffffff',gem:'#5aa2ff'},{n:'Кристальная медаль',rim:'#5a3bd6',face:'#c8b8ff',hi:'#ffffff',gem:'#7fffe9'}],
 MEDALD=['Первая медаль за 50 уровней. Простая, но честно заработанная.','Серебро: вторые 50 уровней. Добавились серебряный блеск и голубые самоцветы.','Золото: третья медаль. Тёплое сияние и оранжевые самоцветы.','Платина: четвёртая медаль. Холодный блеск и сапфиры.','Кристальная медаль: высшая награда. Переливающиеся кристаллы и лучи.'];
@@ -2266,7 +2424,7 @@ function medalsHTML(){const md=PROF.md|0,lv=PROF.lv|0,cards=MEDAL.map((M,i)=>{co
 function claimMedal(){if((PROF.lv|0)>=50&&(PROF.md|0)<5){PROF.md=(PROF.md|0)+1;PROF.lv=0;PROF.xp=0;saveProf();invTab=1;ov('inv')}}
 function invEquip(h,k){if(k&&!skOpen(h,k))return;PROF.sk=PROF.sk||{};if(k)PROF.sk[h]=k;else delete PROF.sk[h];saveProf();ov('inv')}
 let invRaf=0;
-function invDraw(cv,h,k,t){const x=cv.getContext('2d'),old=g;try{g=x;x.setTransform(1,0,0,1,0,0);x.clearRect(0,0,cv.width,cv.height);const bg=x.createRadialGradient(cv.width/2,cv.height*.55,8,cv.width/2,cv.height*.55,cv.width*.7);bg.addColorStop(0,'#2b3b57');bg.addColorStop(1,'#0e141e');x.fillStyle=bg;x.fillRect(0,0,cv.width,cv.height);x.scale(cv.width/70,cv.width/70);SKT=t;drawHero({h,sk:k,x:35,y:38,r:16,team:0,fa:-.5+Math.sin(t*.7)*.55,lvl:1,hp:1,mhp:1,noUI:1,sh:0,inv:0,pl:0,id:7});if(cv.dataset&&cv.dataset.lk==='1'){x.setTransform(1,0,0,1,0,0);x.fillStyle='rgba(8,12,20,.6)';x.fillRect(0,0,cv.width,cv.height);x.font='bold '+(cv.width*.3)+'px system-ui';x.textAlign='center';x.textBaseline='middle';x.fillStyle='#fff';x.fillText('🔒',cv.width/2,cv.height/2)}}catch(e){}SKT=null;g=old}
+function invDraw(cv,h,k,t){const x=cv.getContext('2d'),old=g;try{g=x;x.setTransform(1,0,0,1,0,0);x.clearRect(0,0,cv.width,cv.height);const bg=x.createRadialGradient(cv.width/2,cv.height*.55,8,cv.width/2,cv.height*.55,cv.width*.7);bg.addColorStop(0,'#2b3b57');bg.addColorStop(1,'#0e141e');x.fillStyle=bg;x.fillRect(0,0,cv.width,cv.height);x.scale(cv.width/105,cv.height/105);SKT=t;drawHero({h,sk:k,x:52,y:56,r:15,team:0,fa:-.5+Math.sin(t*.7)*.55,lvl:1,hp:1,mhp:1,noUI:1,sh:0,inv:0,pl:0,id:7});if(cv.dataset&&cv.dataset.lk==='1'){x.setTransform(1,0,0,1,0,0);x.fillStyle='rgba(8,12,20,.6)';x.fillRect(0,0,cv.width,cv.height);x.font='bold '+(cv.width*.3)+'px system-ui';x.textAlign='center';x.textBaseline='middle';x.fillStyle='#fff';x.fillText('🔒',cv.width/2,cv.height/2)}}catch(e){}SKT=null;g=old}
 function invStart(){invStop();const cvs=[...document.querySelectorAll('canvas.pv,canvas.mv')];if(!cvs.length)return;for(const cv of cvs)cvDraw(cv,performance.now()/1000);let last=0;const loop=ts=>{if(ovMode!='inv'&&ovMode!='loot'&&ovMode!='lootResult'){invRaf=0;return}if(ts-last>33){last=ts;const t=ts/1000;for(const cv of cvs)cvDraw(cv,t)}invRaf=requestAnimationFrame(loop)};invRaf=requestAnimationFrame(loop)}
 function cvDraw(cv,t){if(cv.dataset.m!=null)drawMedal(cv.getContext('2d'),cv.width,+cv.dataset.m,+cv.dataset.p,t,cv.dataset.l==='1');else invDraw(cv,+cv.dataset.h,+cv.dataset.k,t)}
 function invStop(){if(invRaf){cancelAnimationFrame(invRaf);invRaf=0}}

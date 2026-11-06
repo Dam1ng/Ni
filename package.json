@@ -1,6 +1,6 @@
 {
   "name": "crystal-guards-online",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "Кристальные Стражи — MOBA 1×1 через собственный WebSocket-сервер",
   "scripts": {

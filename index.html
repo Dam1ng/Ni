@@ -677,7 +677,7 @@ function init(pi,p2,pk){KL.length=0;KF.length=0;for(const k in GR)GR[k]=GR[k].fi
   TH[tm]=regOb(mk({k:'throne',team:tm,x:BS[tm][0],y:BS[tm][1],hp:4000,mhp:4000,r:56}),72);
   for(let i=0;i<4;i++){const h=pk?pk[tm][i]:(!tm&&!i)?pi:(tm&&!i&&p2!=null)?p2:Math.floor(Math.random()*HER.length),H=HER[h],x=TH[tm].x+(tm?-70:70)+i*14-20,y=TH[tm].y+(tm?70:-70)-i*14+20;
    const u=mk({k:'hero',h,team:tm,slot:i,lane:pk?[0,2,1,2][HROLE[h]]:[1,0,2,1][i],tl:pk?[0,2,1,2][HROLE[h]]:[1,0,2,1][i],tt:0,job:0,pl:!tm&&!i,rm:!!(tm&&!i&&p2!=null),lvl:1,xp:0,x,y,hp:0,mhp:0,rg:H.rg,as:H.as,sp:H.sp,c:[0,0,0],hs:0,rt:0,tgt:null,mv:null,rec:false,r:16,wt:0,sc:0,stuck:0,lx:x,ly:y,itm:[0,0,0],cry:0});
-   u.rate=(ROSTER[tm][i]||{}).m||PROF.mmr;u.nm=(ROSTER[tm][i]||{}).n;u.sk=u.pl?curSk(h):u.rm?skValid(h,GSK):(SKIN[h]&&Math.random()<.35?freeSk(h):0);recalc(u);if(u.pl)P=u;if(u.rm)RM=u}}
+   u.rate=(ROSTER[tm][i]||{}).m||PROF.mmr;u.nm=(ROSTER[tm][i]||{}).n;u.sk=u.pl?curSk(h):u.rm?skValid(h,GSK):0;recalc(u);if(u.pl)P=u;if(u.rm)RM=u}}
  GSK=0;RW=null;ZN=[];cam.x=P.x;cam.y=P.y;TP=[{w:0,r:null},{w:0,r:null}];planT=0;navTowers();CAMPS=mkCamps();FT=[];campT=0;shopSig='';shopMsg='';updVul();updFog();
  say('Разрушьте трон Dire! Клик/тап — идти, клик по врагу — атака, Q, E, R — умения, B — магазин (кристаллы падают с нейтралов)')}
 function canHit(t){if(t.dead)return false;if(t.k=='tower'||t.k=='throne')return !!t.vul;return true}
@@ -946,93 +946,174 @@ function fight(u,t){
      (dd>.55||((u.id+Math.floor(T*1.5))%4!==0)))cast(u,0);
  }
 }
+// Team plans are sticky: an order isn't cancelled merely because the planner runs again.
+// Priority: defend threatened base > help a teammate in a real fight > boss > runes > lanes.
 let TP=[{w:0,r:null},{w:0,r:null}],planT=0;
 function rally(tm,b){return ENT[b.a]}
 const bossT=()=>fut&&!fut.dead?fut:(neu&&!neu.dead?neu:null);
 function plan(){for(let tm=0;tm<2;tm++){
  const tp=TP[tm],dd=teamD(tm),hs=U.filter(o=>o.k=='hero'&&!o.dead&&o.team==tm&&!o.pl&&!o.rm);
- const enemy=U.filter(o=>o.k=='hero'&&!o.dead&&o.team==1-tm&&seen(tm,o.x,o.y));
+ const friends=U.filter(o=>o.k=='hero'&&!o.dead&&o.team==tm);
+ const enemies=U.filter(o=>o.k=='hero'&&!o.dead&&o.team==1-tm&&seen(tm,o.x,o.y));
+ const towers=U.filter(o=>o.k=='tower'&&!o.dead&&o.team==tm);
  hs.forEach(o=>{o.job=0;o.defPos=null;botBuy(o)});
- const tower=U.filter(o=>o.k=='tower'&&!o.dead&&o.team==tm),avail=hs.filter(o=>!o.rec&&o.hp/o.mhp>.44);
- let free=avail.slice();
- // Protect throne before any map objective, using only as many defenders as needed.
- const atBase=enemy.filter(e=>D(e,TH[tm])<850);
- if(atBase.length){free.slice().sort((a,b)=>D(a,TH[tm])-D(b,TH[tm])).slice(0,Math.min(free.length,Math.max(2,atBase.length))).forEach(o=>o.job=2);
-  free=free.filter(o=>!o.job);
+ let free=hs.filter(o=>!o.rec&&o.hp/o.mhp>.39);
+ const take=(o,job)=>{o.job=job;free=free.filter(v=>v!==o)};
+ // Defend the throne, but preserve the ability of other bots to counterattack.
+ const baseFoes=enemies.filter(e=>D(e,TH[tm])<1020);
+ const baseCreeps=U.filter(e=>e.k=='creep'&&!e.dead&&e.team==1-tm&&D(e,TH[tm])<540).length;
+ if(baseFoes.length||baseCreeps>=4){const count=Math.min(free.length,Math.max(1,baseFoes.length+Number(baseCreeps>=6)));
+  free.slice().sort((a,b)=>D(a,TH[tm])-D(b,TH[tm])).slice(0,count).forEach(o=>{o.defPos=[TH[tm].x,TH[tm].y];take(o,2)});
  }
- // Rotate one nearby bot to help a threatened tower. High ranks react sooner.
- if(dd>.35){for(const tw of tower){
-  const foes=enemy.filter(e=>D(e,tw)<(dd>.7?640:480));if(!foes.length)continue;
-  const defenders=U.filter(o=>o.k=='hero'&&!o.dead&&o.team==tm&&D(o,tw)<630).length;
-  if(defenders>=foes.length)continue;
-  const b=free.filter(o=>o.job==0).sort((a,b)=>D(a,tw)-D(b,tw))[0];
-  if(b&&D(b,tw)<2100){b.job=2;b.defPos=[tw.x,tw.y];free=free.filter(o=>o!==b)}
- }}
- // Boss calls only when reasonably safe. Old AI sent almost the entire team blindly.
- const boss=dd>.48&&T>540&&free.length>=2&&!atBase.length?bossT():null;
- const nearBossEnemy=boss&&enemy.some(e=>D(e,boss)<1000);
- if(boss&&!nearBossEnemy&&kills[tm]+3>=kills[1-tm]){
-  const needed=boss.boss==2?3:2;
-  const group=free.filter(o=>o.hp/o.mhp>.68&&o.lvl>=(boss.boss==2?15:9))
-   .sort((a,b)=>D(a,boss)-D(b,boss)).slice(0,needed);
-  if(group.length===needed){tp.b=boss;tp.r=rally(tm,boss);tp.w=(tp.w||0)+1;
-   group.forEach(o=>o.job=1);free=free.filter(o=>!o.job)}
-  else{tp.w=0;tp.b=null;tp.r=null}
- }else{tp.w=0;tp.b=null;tp.r=null}
- // Capture runes with one available unit; do not abandon lanes for distant runes.
- if(dd>.35)for(const r of arunes){if(enemy.some(e=>D(e,r)<600))continue;
-  const b=free.filter(o=>D(o,r)<1600).sort((a,b)=>D(a,r)-D(b,r))[0];
-  if(b){b.job=3;if(b.rune!==r){b.rune=r;b.ph=0}free=free.filter(o=>o!==b)}}
- // Stable lanes with a short rotation cooldown, rather than constant random switches.
- const cnt=[0,1,2].map(l=>free.filter(o=>o.tl==l).length);
- const threat=[0,1,2].map(l=>enemy.filter(e=>tower.some(t=>t.l==l&&D(t,e)<800)).length);
- for(let l=0;l<3;l++)if(dd>.44&&threat[l]>cnt[l]){
-  const b=free.filter(o=>o.tl!=l&&T-(o.tt||0)>24).sort((a,b)=>{
-   const a0=pt(l,tm,LN[l].L*.42);return D(a,{x:a0[0],y:a0[1]})-D(b,{x:a0[0],y:a0[1]})})[0];
-  if(b){cnt[b.tl]--;cnt[l]++;b.tl=l;b.tt=T}
+ // Defend a tower that is being assaulted, not one with a harmless distant creep.
+ if(dd>.23)for(const tw of towers){
+  const foes=enemies.filter(e=>D(e,tw)<680);
+  const siege=U.filter(e=>e.k=='creep'&&!e.dead&&e.team==1-tm&&D(e,tw)<340).length;
+  if(!foes.length&&siege<5)continue;
+  const defenders=friends.filter(o=>D(o,tw)<580).length;
+  if(defenders>=Math.max(1,foes.length))continue;
+  const b=free.filter(o=>D(o,tw)<2350).sort((a,b)=>D(a,tw)-D(b,tw))[0];
+  if(b){b.defPos=[tw.x,tw.y];take(b,2)}
  }
- for(const o of free)if(dd>.45&&T-(o.tt||0)>40&&o.tl!==o.lane&&threat[o.tl]==0&&cnt[o.tl]>1){cnt[o.tl]--;cnt[o.lane]++;o.tl=o.lane;o.tt=T}
- // A coordinated push at high MMR, but only with allied lane creeps and no base threat.
- if(dd>.76&&T>480&&!atBase.length&&free.length>=2){
-  const lanes=[0,1,2].map(l=>({l,c:U.filter(o=>o.k=='creep'&&!o.dead&&o.team==tm&&o.l==l&&o.s>LN[l].L*.5).length}));
-  lanes.sort((a,b)=>b.c-a.c);
-  if(lanes[0].c>=4){const l=lanes[0].l;free.filter(o=>o.tl!=l&&T-(o.tt||0)>32).slice(0,Math.min(2,free.length)).forEach(o=>{o.tl=l;o.tt=T})}
+ // React to actual fights near a friendly hero (including the human), rather than
+ // pursuing solitary enemies across the entire map.
+ if(free.length&&dd>.20){
+  let best=null,bestScore=-1e9;
+  for(const enemy of enemies){
+   const nearby=friends.filter(f=>D(f,enemy)<860);
+   if(!nearby.length)continue;
+   const pressure=nearby.some(f=>f.hp/f.mhp<.77||f.tgt===enemy||enemy.tgt===f);
+   if(!pressure&&D(enemy,TH[tm])>1650)continue;
+   const closest=Math.min(...free.map(o=>D(o,enemy)));
+   const score=(pressure?600:150)+nearby.length*180+(1-enemy.hp/enemy.mhp)*190-closest*.28;
+   if(score>bestScore){bestScore=score;best=enemy}
+  }
+  if(best&&bestScore>0){
+   const already=friends.filter(f=>D(f,best)<540).length;
+   const enemyHelp=enemies.filter(e=>D(e,best)<630).length;
+   const count=Math.min(free.length,Math.max(1,Math.min(2,enemyHelp+1-already+1)));
+   free.filter(o=>o.hp/o.mhp>.38&&D(o,best)<(dd>.65?2700:1900)).sort((a,b)=>D(a,best)-D(b,best)).slice(0,count).forEach(o=>{
+    o.focus=best;o.focusPos=[best.x,best.y];o.focusUntil=T+9;take(o,4)
+   });
+  }
+ }
+ // Keep an existing boss team together until the attempt ends. Replanning every
+ // second previously cancelled groups and made boss objectives effectively unreachable.
+ const b=bossT();let mission=tp.mission;
+ if(mission&&(!b||b.id!==mission.bossId||b.dead||T>mission.expires)){
+  if(b&&b.id===mission.bossId&&!b.dead)tp.bossCooldown=T+18;
+  mission=null;tp.mission=null;
+ }
+ if(mission){
+  tp.b=b;tp.r=rally(tm,b);tp.start=mission.start;
+  const ids=new Set(mission.ids);
+  const current=free.filter(o=>ids.has(o.id)&&o.hp/o.mhp>.36);
+  current.forEach(o=>take(o,1));
+  const needed=Math.max(0,mission.need-current.length);
+  free.filter(o=>o.hp/o.mhp>.54).sort((a,c)=>D(a,b)-D(c,b)).slice(0,needed).forEach(o=>{mission.ids.push(o.id);take(o,1)});
+  // If the force disappears, disengage rather than sending a lone bot to die.
+  if(hs.filter(o=>o.job==1).length<Math.min(2,mission.need)){hs.filter(o=>o.job==1).forEach(o=>o.job=0);tp.mission=null;tp.b=null;tp.r=null;tp.bossCooldown=T+18}
+ }else{
+  tp.b=null;tp.r=null;
+  const inCombatNearBoss=b&&enemies.filter(e=>D(e,b)<700).length;
+  const teamThere=b&&friends.filter(o=>D(o,b)<920).length;
+  const enemyThere=b&&enemies.filter(o=>D(o,b)<920).length;
+  if(b&&free.length>=2&&T>480&&T>(tp.bossCooldown||0)&&
+    (!inCombatNearBoss||teamThere>=enemyThere)&&!baseFoes.length){
+   const need=b.boss==2?3:2;
+   const can=free.filter(o=>o.hp/o.mhp>.56&&o.lvl>=(b.boss==2?11:7));
+   const playerNear=friends.some(o=>(o.pl||o.rm)&&D(o,b)<720&&o.hp/o.mhp>.45);
+   const takeN=Math.max(2,need-(playerNear?1:0));
+   if(can.length>=takeN){
+    const group=can.sort((a,c)=>D(a,b)-D(c,b)).slice(0,takeN);
+    tp.mission={bossId:b.id,start:T,expires:T+(b.boss==2?105:80),need:takeN,ids:group.map(o=>o.id)};
+    tp.b=b;tp.r=rally(tm,b);tp.start=T;
+    group.forEach(o=>take(o,1));
+   }
+  }
+ }
+ // Objective runes are worth rotations. Assign one real collector per rune;
+ // rank controls reaction and distance, rather than disabling the feature.
+ const runeTargets=[];
+ if(runeOn)runeTargets.push({r:runeOn,a:-1,value:3});
+ for(const r of arunes)runeTargets.push({r,a:r.a,value:2});
+ runeTargets.sort((a,b)=>b.value-a.value);
+ for(const {r,a} of runeTargets){
+  if(!free.length)break;
+  const contested=enemies.filter(e=>D(e,r)<380).length;
+  const maxDist=dd>.72?3100:dd>.37?2600:1900;
+  const candidates=free.filter(o=>o.hp/o.mhp>.43&&D(o,r)<maxDist && (contested===0||friends.filter(f=>D(f,r)<750).length>=contested));
+  const o=candidates.sort((a,b)=>D(a,r)-D(b,r))[0];
+  if(o){o.rune=r;o.runeKind=a;o.ph=0;take(o,3)}
+ }
+ // After fighting over objectives, maintain lane coverage and opportunistically
+ // group for a push instead of indefinitely farming only assigned lanes.
+ const counts=[0,1,2].map(l=>free.filter(o=>o.tl==l).length);
+ const threat=[0,1,2].map(l=>enemies.filter(e=>towers.some(t=>t.l==l&&D(t,e)<850)).length);
+ for(let l=0;l<3;l++)if(dd>.35&&threat[l]>counts[l]){
+  const o=free.filter(o=>o.tl!=l&&T-(o.tt||0)>22).sort((a,b)=>{
+   const p=pt(l,tm,LN[l].L*.46);return D(a,{x:p[0],y:p[1]})-D(b,{x:p[0],y:p[1]})})[0];
+  if(o){counts[o.tl]--;o.tl=l;counts[l]++;o.tt=T}
+ }
+ if(dd>.55&&T>420&&free.length>=2&&!baseFoes.length){
+  const waves=[0,1,2].map(l=>({l,n:U.filter(o=>o.k=='creep'&&!o.dead&&o.team==tm&&o.l==l&&o.s>LN[l].L*.48).length})).sort((a,b)=>b.n-a.n);
+  if(waves[0].n>=4){const lane=waves[0].l;for(const o of free.filter(o=>o.tl!=lane&&T-(o.tt||0)>35).slice(0,2)){o.tl=lane;o.tt=T}}
  }
 }}
 
 const fpos=u=>{let f=0;for(const o of U)if(o.k=='creep'&&o.team==u.team&&o.l==u.tl&&o.s>f)f=o.s;return f};
 function ai(u,dt){u.te=(u.te||0)+dt;u.th=(u.th||0)-dt;if(u.th>0)return;const e=u.te;u.te=0;u.th=(.52-.36*botD(u))*(.86+Math.random()*.28);aiSmart(u,e)}
-function ai0(u,dt){const home=TH[u.team],tp=TP[u.team],dd=botD(u),L=LN[u.tl].L;
- if(u.hp<u.mhp*(.16+.2*dd-(u.ia&&u.ia.eg&&!(u.egc>0)?.1:0)))u.rec=true;if(u.hp>u.mhp*.85)u.rec=false;
- if(u.rec){u.tgt=null;u.mv=[home.x,home.y];u.sc=0;return}
- u.wt+=dt;if(u.wt>3){u.sc=Math.hypot(u.x-u.lx,u.y-u.ly)<30&&!(u.tgt&&D(u,u.tgt)-u.tgt.r<=u.rg+10)?u.sc+1:0;if(u.sc>=2){u.stuck=8;u.sc=0}u.lx=u.x;u.ly=u.y;u.wt=0}
- if(u.job==2){const defend=u.defPos?{x:u.defPos[0],y:u.defPos[1]}:home;const e=U.filter(o=>o.k=='hero'&&!o.dead&&o.team!=u.team&&D(o,defend)<750&&seen(u.team,o.x,o.y)).sort((a,b)=>D(u,a)-D(u,b))[0];if(e){u.tgt=e;u.mv=null;fight(u,e);return}if(D(u,defend)>300){u.tgt=null;u.mv=[defend.x,defend.y];return}}
- if(u.job==1&&tp.b&&!tp.b.dead&&tp.r){const bs=tp.b,jb=U.filter(o=>o.job==1&&o.team==u.team&&!o.dead),here=jb.filter(o=>Math.hypot(o.x-tp.r[0],o.y-tp.r[1])<420||D(o,bs)<400).length;
-  if(here>=jb.length||bs.hp<bs.mhp||tp.w>25){if(D(u,bs)>380&&Math.hypot(u.x-tp.r[0],u.y-tp.r[1])>150){u.tgt=null;u.mv=tp.r;return}u.tgt=bs;u.mv=null;fight(u,bs);return}
-  const e=pick(u,260,hh);if(e){u.tgt=e;u.mv=null;fight(u,e)}else{u.tgt=null;u.mv=tp.r}return}
- if(u.job==3&&arunes.includes(u.rune)){const r=u.rune,E=ENT[r.a];if(!u.ph&&Math.hypot(u.x-E[0],u.y-E[1])>140&&D(u,r)>340){u.tgt=null;u.mv=E;return}u.ph=1;u.tgt=null;u.mv=[r.x,r.y];return}
- if(runeOn&&u.tl==1&&D(u,runeOn)<900){u.tgt=null;u.mv=[runeOn.x,runeOn.y];return}
- if(u.stuck>0){u.stuck-=dt;let b=null,bs=1e9;for(const t of U)if(t.team!=u.team&&t.team<2&&(t.k=='tower'||t.k=='throne')&&canHit(t)){const s=D(u,t)-(t.l==u.tl?900:0);if(s<bs){bs=s;b=t}}if(b){u.tgt=b;u.mv=null;fight(u,b);return}}
- // anti-idle: if nothing happened for a while, walk to the lane
- u.ai2=(u.ai2||0)+dt;if(u.ai2>2.5){const mvd=Math.hypot(u.x-(u.ax==null?u.x:u.ax),u.y-(u.ay==null?u.y:u.ay));if(mvd<40&&!(u.la&&T-u.la<2.5)&&!(u.st>0)&&!(u.fw&&T-u.fw<4))u.kick=3;u.ax=u.x;u.ay=u.y;u.ai2=0}
- if(u.kick>0){u.kick-=dt;u.tgt=null;u.mv=pt(u.tl,u.team,L*(.3+((u.id*7)%5)/25));return}
- const near=U.some(o=>o.k=='creep'&&o.team==u.team&&D(o,u)<260),
-  E=U.filter(o=>o.k=='hero'&&!o.dead&&o.team!=u.team&&seen(u.team,o.x,o.y)&&D(u,o)<1000).sort((a,b)=>D(u,a)-D(u,b)),
-  Al=U.filter(o=>o.k=='hero'&&!o.dead&&o.team==u.team&&o!==u&&D(u,o)<750),
-  pw=o=>(o.hp/o.mhp)*(o.mhp*.45+o.dmg*9),adv=(pw(u)+Al.reduce((a,o)=>a+pw(o),0))/(E.filter(o=>D(u,o)<750).reduce((a,o)=>a+pw(o),0)+1),
-  eTw=o=>U.find(x=>x.k=='tower'&&!x.dead&&x.team!=u.team&&D(o,x)<x.rg+25);
- if(dd>.35&&!near&&eTw(u)){const l=D(home,u)||1;u.tgt=null;u.mv=[u.x+(home.x-u.x)/l*260,u.y+(home.y-u.y)/l*260];return}
- let t=null;const e0=E[0],weak=u.job==4?null:E.find(o=>o.hp<o.mhp*.45),engR=u.job==4?u.rg+70:u.rg+140+dd*300,brave=dd<.3||adv>1.05-.4*dd;
- if(e0&&brave){const c=(weak&&dd>.45&&D(u,weak)<1700)?weak:(D(u,e0)<engR?e0:null);if(c&&!(eTw(c)&&!near&&dd>.35&&c.hp>c.mhp*.25&&adv<1.5))t=c}
- else if(e0&&!brave&&dd>.3&&D(u,e0)>u.rg+30&&D(u,e0)<520){u.tgt=null;u.mv=pt(u.tl,u.team,Math.max(L*.15,fpos(u)-260));return}
- if(!t)t=pick(u,u.rg>120?u.rg+60:300,o=>o.k!='neu'&&((o.k!='tower'&&o.k!='throne')||near));
- if(!t&&T>60&&(u.fm||T-(u.fo||0)>10)&&farmWant(u)){if(jgMove(u,dd,1)){u.fm=1;return}if(u.fm){u.fm=0;u.fo=T}}
- u.tgt=t;u.mv=null;
- if(!t){const f=fpos(u);let sp=f>0?f+30+dd*110:L*.32;sp=Math.min(sp,L-260);u.mv=pt(u.tl,u.team,Math.max(L*.2,sp));
-  if(Math.random()<.12*(1-dd))u.mv=[Math.max(120,Math.min(W-120,u.x+Math.random()*500-250)),Math.max(120,Math.min(W-120,u.y+Math.random()*500-250))]}
- else{fight(u,t);const d=D(u,t);
-  if(u.rg>110&&t.k=='hero'){if(dd>.45&&d<u.rg*.5&&u.cd>.25){const l=D(home,u)||1;u.tgt=null;u.mv=[u.x+(home.x-u.x)/l*170,u.y+(home.y-u.y)/l*170]}
-   else if(dd>.3&&d<u.rg+20&&u.cd>.35){const sg=(Math.floor(T/1.2)+u.id)%2?1:-1,px=-(t.y-u.y)/(d||1)*sg,py=(t.x-u.x)/(d||1)*sg;u.tgt=null;u.mv=[u.x+px*120,u.y+py*120]}}}}
+function ai0(u,dt){
+ const tp=TP[u.team],home=TH[u.team];
+ const nearEnemy=U.filter(o=>o.k=='hero'&&!o.dead&&o.team!=u.team&&seen(u.team,o.x,o.y)&&D(o,u)<510)
+  .sort((a,b)=>D(u,a)-D(u,b))[0];
+ // A defender will challenge intruders, otherwise move to the defended structure.
+ if(u.job==2){
+  const loc=u.defPos?{x:u.defPos[0],y:u.defPos[1]}:home;
+  const e=U.filter(o=>o.k=='hero'&&!o.dead&&o.team!=u.team&&seen(u.team,o.x,o.y)&&D(o,loc)<850)
+   .sort((a,b)=>D(u,a)-D(u,b))[0];
+  if(e){u.tgt=e;u.mv=null;fight(u,e);return}
+  u.tgt=null;u.mv=[loc.x,loc.y];return;
+ }
+ // Squad objectives: meet at the entrance, then actually attack together.
+ if(u.job==1&&tp.b&&!tp.b.dead&&tp.r){
+  const b=tp.b,team=U.filter(o=>o.k=='hero'&&!o.dead&&o.team==u.team&&o.job==1);
+  const here=team.filter(o=>D(o,b)<530||Math.hypot(o.x-tp.r[0],o.y-tp.r[1])<350).length;
+  // If contested, fight defending enemies as a team rather than tunnelling the boss.
+  const foe=U.filter(o=>o.k=='hero'&&!o.dead&&o.team!=u.team&&seen(u.team,o.x,o.y)&&D(o,b)<580&&D(o,u)<730)
+   .sort((a,c)=>D(a,u)-D(c,u))[0];
+  if(foe&&here>=Math.max(1,team.length-1)){u.tgt=foe;u.mv=null;fight(u,foe);return}
+  if(nearEnemy&&nearEnemy.hp/nearEnemy.mhp<.4&&D(u,nearEnemy)<u.rg+130){u.tgt=nearEnemy;u.mv=null;fight(u,nearEnemy);return}
+  // Mark the entrance as completed once; otherwise the bot runs back to it
+  // every time it advances 200 units toward the boss (visible rubber-banding).
+  if(u.bossTask!==b.id){u.bossTask=b.id;u.bossEntered=D(u,b)<780}
+  if(Math.hypot(u.x-tp.r[0],u.y-tp.r[1])<270||D(u,b)<780)u.bossEntered=true;
+  if(!u.bossEntered&&D(u,b)>620){u.tgt=null;u.mv=[tp.r[0],tp.r[1]];return}
+  if(here>=Math.min(2,team.length)||b.hp<b.mhp||T-(tp.start||T)>18){u.tgt=b;u.mv=null;fight(u,b);return}
+  u.tgt=null;u.mv=[tp.r[0],tp.r[1]];return;
+ }
+ // Rune collectors go to the actual rune, including the XP rune in the river.
+ if(u.job==3&&u.rune&&(u.rune===runeOn||arunes.includes(u.rune))){
+  const r=u.rune;
+  if(nearEnemy&&D(u,nearEnemy)<u.rg+90){u.tgt=nearEnemy;u.mv=null;fight(u,nearEnemy);return}
+  u.tgt=null;
+  if(u.runeKind>=0){const p=ENT[u.runeKind];
+   if(D(u,r)>380&&Math.hypot(u.x-p[0],u.y-p[1])>240){u.mv=[p[0],p[1]];return}
+  }
+  u.mv=[r.x,r.y];return;
+ }
+ // Real coordinated teamfight. The target may move; refresh from visible position.
+ if(u.job==4){
+  const f=u.focus;
+  if(f&&!f.dead&&seen(u.team,f.x,f.y)){
+   u.focusPos=[f.x,f.y];u.tgt=f;u.mv=null;fight(u,f);return;
+  }
+  if(u.focusPos&&T<(u.focusUntil||0)){
+   u.tgt=null;u.mv=u.focusPos.slice();return;
+  }
+ }
+ u.job=0;u.tgt=null;u.mv=null;
+}
 function aiSmart(u,dt){
  const dd=botD(u),hp=u.hp/Math.max(1,u.mhp),home=TH[u.team],L=LN[u.tl].L;
  const enemies=U.filter(o=>o.k=='hero'&&!o.dead&&o.team!=u.team&&seen(u.team,o.x,o.y)&&D(o,u)<980);
@@ -1049,14 +1130,13 @@ function aiSmart(u,dt){
  if(hp<(.19+.08*dd)&&!(u.und>T))u.rec=true;
  if(u.rec){if(hp>.87)u.rec=false;else{u.tgt=null;u.mv=[home.x,home.y];return}}
  // Stay alive: avoid dives when the friendly creep wave has not arrived.
- if(dd>.3&&tower&&!nearWave&&D(u,tower)<tower.rg+150){
+ if(dd>.3&&tower&&!nearWave&&D(u,tower)<tower.rg+150&&
+   (u.job==0||u.job==4||u.hp/u.mhp<.42)){
   escape(430);return;
  }
  if(dd>.35&&dangerous.length&&(hp<(.31+.13*dd)||adv<(.65+.25*dd))){
   escape(330);if(u.c[1]<=0&&hp<.48)cast(u,1);return;
  }
- // Preserve the strategic orders for base defence, runes and grouped bosses.
- if(u.job==1||u.job==2||u.job==3){ai0(u,dt);return}
  // Dedicated healing logic: supports restore health even when nobody is attacking.
  if(HROLE[u.h]==3){
   const hurt=allies.some(o=>D(o,u)<410&&o.hp/o.mhp<.63)||hp<.47;
@@ -1067,6 +1147,9 @@ function aiSmart(u,dt){
    if(u.c[1]<=0&&['shield','ward','bloom','repair'].includes(s[1]))cast(u,1);
   }
  }
+ // Strategic orders override ordinary farming and should not be cancelled by
+ // last-hit logic. Emergency retreats above remain possible.
+ if(u.job>=1&&u.job<=4){ai0(u,dt);return}
  // Stop idling when pathfinding fails, without repeatedly diving enemy towers.
  u.wt+=dt;if(u.wt>3){const moved=Math.hypot(u.x-u.lx,u.y-u.ly);
   if(moved<24&&u.tgt&&D(u,u.tgt)>u.rg+60)u.np=null;
@@ -1906,14 +1989,18 @@ const CAL=10;let PROF={mmr:1200,g:0,w:0,l:0,last:0,rd:350,peak:1200},ended=false
 try{const sv=JSON.parse(localStorage.getItem('miniMoba.v1')||'null');if(sv&&typeof sv.mmr=='number')PROF=Object.assign(PROF,sv)}catch(e){}
 if(PROF.rd==null)PROF.rd=PROF.g<CAL?Math.max(120,350-PROF.g*25):90;if(PROF.peak==null)PROF.peak=PROF.mmr;
 const saveProf=()=>{try{localStorage.setItem('miniMoba.v1',JSON.stringify(PROF))}catch(e){}};
-// One-off migration from the old Golden Season. Old coins turn into tokens once.
-if(PROF.cosmeticVer!==2){
- const own=Object.assign({},PROF.owned||{}),legacy=PROF.coins|0;
- for(const [h,k] of Object.entries(PROF.sk||{}))if(SKIN[h]&&SKIN[h][k-1])own[h+':'+k]=1;
- for(const [h,list] of Object.entries(SKIN))list.forEach((skin,i)=>{
-  if(skin.ev&&legacy>=[150,600,1500][skin.ev-1])own[h+':'+(i+1)]=1;
- });
- PROF.owned=own;PROF.tokens=Math.max(0,(PROF.tokens|0)+Math.max(0,legacy));PROF.cosmeticVer=2;PROF.arcanaMiss=0;saveProf();
+// Cosmetic collection reset 0.1.2: apply once on every player's browser.
+// Only skins and the chest pity counter are reset. Keep tokens, MMR, stats and medals.
+// For users jumping from versions before 0.1.2, convert Golden Season coins once,
+// but NEVER re-award old skins or Golden Season cosmetic prizes.
+if(PROF.cosmeticVer!==3){
+ const legacy=PROF.cosmeticVer===2?0:Math.max(0,PROF.coins|0);
+ PROF.tokens=Math.max(0,(PROF.tokens|0)+legacy);
+ PROF.owned={};
+ PROF.sk={};
+ PROF.arcanaMiss=0;
+ PROF.cosmeticVer=3;
+ saveProf();
 }
 
 function rankOf(m){let i=0;for(let k=0;k<8;k++)if(m>=RANKS[k].min)i=k;if(i==7)return{i,st:0,prog:1,next:0};const lo=RANKS[i].min,w=(RANKS[i+1].min-lo)/5,q=Math.floor((m-lo)/w);return{i,st:q+1,prog:(m-lo)/w-q,next:Math.ceil(lo+w*(q+1)-m)}}
@@ -2054,8 +2141,8 @@ function lootGet(){if((PROF.tokens|0)<LOOT_COST)return;const tier=lootPickTier()
  else{PROF.tokens+=90;LOOT_LAST={...got,duplicate:true,refund:90}}
  saveProf();ov('lootResult');
 }
-function lootBuy(h,k){const s=SKIN[h]&&SKIN[h][k-1];if(!s||skOpen(h,k))return;const cost=SKIN_PRICES[s.r]||999999;if((PROF.tokens|0)<cost)return;
- PROF.tokens-=cost;PROF.owned=PROF.owned||{};PROF.owned[h+':'+k]=1;saveProf();LOOT_LAST={h,k,s,duplicate:false,refund:0,bought:true};ov('lootResult')}
+// Direct skin purchases disabled: the chest is the only way to unlock a skin.
+function lootBuy(h,k){return false}
 function lootEquip(h,k){if(!skOpen(h,k))return;PROF.sk=PROF.sk||{};PROF.sk[h]=k;saveProf();ov('inv')}
 
 function giveReward(won,left){const me=P&&stRows().find(x=>x.u===P);if(!me||left||T<180)return null;
@@ -2094,10 +2181,10 @@ function rewardHTML(){const r=RW;
  +(r.full?'<div class="rwu">🏅 Достигнут 50 уровень! Заберите медаль в инвентаре.</div>':'')
  +'<div class="mb"><button class="btn big" onclick="goLoot()">🎁 Магазин сундуков</button><button class="btn" onclick="goInv()">🎒 Инвентарь</button></div></div>'}
 function lootHTML(){const rates=lootRates(),tierBox=lootTiers.map((r,i)=>'<div class="loot-rate" style="--rc:'+RAR[r]+'"><strong>'+r+'</strong><b>'+rates[i].toFixed(2).replace('.',',')+'%</b></div>').join('');
- const cards=invList().map(x=>{const own=skOpen(x.h,x.k),cost=SKIN_PRICES[x.s.r],col=RAR[x.s.r];return '<div class="loot-skin" style="--rc:'+col+'"><div class="invr">'+x.s.r+'</div><canvas class="pv" data-h="'+x.h+'" data-k="'+x.k+'" width="160" height="160"></canvas><div><b>'+x.s.n+'</b><small>'+HER[x.h].n+'</small></div><button class="btn" '+(own?'disabled':'onclick="lootBuy('+x.h+','+x.k+')"')+'>'+(own?'✓ Получено':cost+' ✦')+'</button></div>'}).join('');
+ const cards=invList().map(x=>{const own=skOpen(x.h,x.k),col=RAR[x.s.r];return '<div class="loot-skin" style="--rc:'+col+'"><div class="invr">'+x.s.r+'</div><canvas class="pv" data-h="'+x.h+'" data-k="'+x.k+'" width="160" height="160"></canvas><div><b>'+x.s.n+'</b><small>'+HER[x.h].n+'</small></div><button class="btn" disabled>'+(own?'✓ Получено':'🔒 Только из сундука')+'</button></div>'}).join('');
  return '<div class="box" style="max-width:1000px"><h1>🎁 Сокровищница Стражей</h1><p class="loot-info">Вместо Золотого сезона — сундук со всеми скинами. Чем выше редкость, тем сложнее получить. Скины не дают преимуществ в бою.</p>'
  +'<div class="loot-hero"><div class="loot-chest">🎁</div><div class="loot-details"><b>Сундук двух королевств</b><div>Баланс: <strong>✦ '+(PROF.tokens|0)+'</strong></div><small>Цена сундука: '+LOOT_COST+' жетонов · После 20 сундуков без Арканы её шанс постепенно растёт (макс. 6%).</small><div class="mb" style="justify-content:flex-start"><button class="btn big" '+((PROF.tokens|0)<LOOT_COST?'disabled':'onclick="lootGet()"')+'>Открыть за '+LOOT_COST+' ✦</button><button class="btn" onclick="goInv()">Мои скины</button></div></div></div>'
- +'<div class="loot-rates">'+tierBox+'</div><div class="invd">Дубликаты не выпадают, пока в выбранной редкости остались неоткрытые скины. Если все скины редкости уже получены — возвращается 90 ✦. Любой скин также можно купить напрямую.</div>'
+ +'<div class="loot-rates">'+tierBox+'</div><div class="invd">Дубликаты не выпадают, пока в выбранной редкости остались неоткрытые скины. Если все скины редкости уже получены — возвращается 90 ✦. Скины можно получить только из сундуков. Все старые коллекции сброшены однократно.</div>'
  +'<h2 class="loot-subhead">Все награды сундука</h2><div class="loot-grid">'+cards+'</div><div class="rwd"><b>Как получать жетоны</b><div class="rwl"><span>Завершённое поражение</span><b>18 ✦</b><span>Завершённая победа</span><b>30 ✦</b><span>Бонус за время</span><b>до 10 ✦</b><span>Сетевой матч</span><b>+6 ✦</b></div><small>Матчи короче 3 минут и досрочные выходы не дают жетонов.</small></div><div class="mb"><button class="btn big" onclick="goMenu()">Назад</button></div></div>'}
 function lootResultHTML(){const x=LOOT_LAST;if(!x)return lootHTML();const c=RAR[x.s.r];return '<div class="box loot-result" style="max-width:570px;--rc:'+c+'"><h1>'+(x.bought?'Новый скин!':x.duplicate?'Повторная награда':'СУНДУК ОТКРЫТ!')+'</h1><div class="loot-result-stars">✦ ✧ ✦</div><div class="loot-result-title" style="color:'+c+'">'+x.s.r.toUpperCase()+'</div><div class="loot-result-art"><canvas class="pv" data-h="'+x.h+'" data-k="'+x.k+'" width="340" height="340"></canvas></div><h2>'+x.s.n+'</h2><p>'+HER[x.h].n+'</p><div class="invd">'+(x.duplicate?'Этот скин уже получен. Возвращено '+x.refund+' жетонов.':x.s.d)+'</div><div class="mb"><button class="btn big" onclick="goLoot()">К сундукам</button><button class="btn" onclick="goInv()">Инвентарь</button>'+(x.duplicate?'':'<button class="btn" onclick="lootEquip('+x.h+','+x.k+')">Надеть</button>')+'</div></div>'}
 const RAR={'Редкий':'#5aa2ff','Эпический':'#b36bff','Легендарный':'#ffb23f','Аркана':'#72fff1'};
@@ -2109,7 +2196,7 @@ function invHTML(){const tabs='<div class="tabs"><button class="btn'+(invTab==0?
  return '<div class="box" style="max-width:980px"><h1>🎒 Инвентарь</h1>'+tabs+(invTab==1?medalsHTML():skinsHTML())+'<div class="mb"><button class="btn big" onclick="goMenu()">Назад</button></div></div>'}
 function skinsHTML(){const L=invList(),eq=L.filter(x=>curSk(x.h)==x.k).length,op=L.filter(x=>skOpen(x.h,x.k)).length;
  const cards=L.filter(x=>skOpen(x.h,x.k)).map(x=>{const on=curSk(x.h)==x.k,H=HER[x.h],col=RAR[x.s.r]||'#888';return '<div class="invc'+(on?' eq':'')+'" style="--rc:'+col+'"><div class="invr">'+x.s.r+'</div><div class="invp"><div><canvas class="pv sm" data-h="'+x.h+'" data-k="0" width="180" height="180"></canvas><small>Обычный</small></div><div><canvas class="pv bg" data-h="'+x.h+'" data-k="'+x.k+'" width="300" height="300"></canvas><small>'+x.s.n+'</small></div></div><b>'+x.s.n+'</b><br><small>'+H.n+' · '+RNAME[HROLE[x.h]]+'</small><div class="invd">'+x.s.d+'</div><div class="mb"><button class="btn'+(on?'':' big')+'" onclick="invEquip('+x.h+','+(on?0:x.k)+')">'+(on?'✔ Надето · снять':'Надеть')+'</button></div></div>'}).join('');
- return '<div style="text-align:center;opacity:.85;margin-bottom:12px">Получено '+op+' из '+L.length+' скинов · надето '+eq+' · ✦ '+(PROF.tokens|0)+' жетонов</div>'+(cards?'<div class="invg">'+cards+'</div>':'<div class="note">Пока нет скинов. Получите их из сундука или купите за жетоны.</div>')+'<div class="mb"><button class="btn big" onclick="goLoot()">🎁 Магазин сундуков</button></div>'}
+ return '<div style="text-align:center;opacity:.85;margin-bottom:12px">Получено '+op+' из '+L.length+' скинов · надето '+eq+' · ✦ '+(PROF.tokens|0)+' жетонов</div>'+(cards?'<div class="invg">'+cards+'</div>':'<div class="note">Пока нет скинов. Открывайте сундуки за жетоны, чтобы собрать коллекцию.</div>')+'<div class="mb"><button class="btn big" onclick="goLoot()">🎁 Магазин сундуков</button></div>'}
 function medalsHTML(){const md=PROF.md|0,lv=PROF.lv|0,cards=MEDAL.map((M,i)=>{const t=i+1,own=t<=md,cur=t==md+1;
  const info=own?'<div class="evn">✔ Получена</div>':cur?'<div class="lbar" style="margin:6px 0"><i style="width:'+Math.round((lv>=50?1:(PROF.xp|0)/lvNeed(lv))*100)+'%"></i><span>Ур. '+lv+' / 50</span></div>'+(lv>=50?'<div class="mb"><button class="btn big" onclick="claimMedal()">🏅 Забрать медаль (уровень сбросится)</button></div>':'<div class="invd">Достигните 50 уровня, чтобы забрать медаль. Уровень сбросится на 0.</div>'):'<div class="invd">🔒 Откроется после предыдущей медали.</div>';
  return '<div class="invc'+(cur?' eq':'')+'" style="--rc:'+M.rim+'"><div class="invr">Медаль '+t+' из 5</div><div class="invp"><div><canvas class="mv" data-m="'+t+'" data-p="'+(own?1:cur?lv/50:0)+'" data-l="'+(own||cur?0:1)+'" width="300" height="300"></canvas></div></div><b>'+M.n+'</b><div class="invd">'+MEDALD[i]+'</div>'+info+'</div>'}).join('');
@@ -2172,10 +2259,10 @@ async function pushBoard(){if(!PROF.nick||location.protocol==='file:')return;try
 async function claimNick(n){if(location.protocol==='file:')return{ok:true};try{await api('/api/nick',{id:devId,nick:n});return{ok:true}}catch(e){if(!netReady)return{ok:true};return{ok:false,msg:e.message}}}
 async function saveNick(){const inp=$('nk'),m=$('nkmsg'),v=((inp&&inp.value)||'').trim().replace(/\s+/g,' '),say2=t=>{m.textContent=t;m.style.display='block'};if(!/^[A-Za-zА-Яа-яЁё0-9 _\-]{2,16}$/.test(v)){say2('Ник: 2–16 символов — буквы, цифры, пробел, _ и -');return}say2('Проверяю…');const r=await claimNick(v);if(!r.ok){say2(r.msg);return}PROF.nick=v;saveProf();pushBoard();netSend({type:'hello',id:devId,nick:v,mmr:PROF.mmr});ov('menu')}
 netConnect();
-function resetProf(){HIST=[];saveHist();PROF={mmr:1200,g:0,w:0,l:0,last:0,rd:350,peak:1200,nick:PROF.nick,sk:PROF.sk,owned:PROF.owned,tokens:PROF.tokens,cosmeticVer:2,arcanaMiss:PROF.arcanaMiss,coins:PROF.coins,lv:PROF.lv,xp:PROF.xp,md:PROF.md};saveProf();pushBoard();ov('menu')}
+function resetProf(){HIST=[];saveHist();PROF={mmr:1200,g:0,w:0,l:0,last:0,rd:350,peak:1200,nick:PROF.nick,sk:PROF.sk,owned:PROF.owned,tokens:PROF.tokens,cosmeticVer:3,arcanaMiss:PROF.arcanaMiss,coins:PROF.coins,lv:PROF.lv,xp:PROF.xp,md:PROF.md};saveProf();pushBoard();ov('menu')}
 function ov(mode){const o=$('ov');o.hidden=false;$('shop').hidden=true;ovMode=mode;run=false;let h='';if(ROLE!='s'&&mode!='pause'&&mode!=2&&mode!='lost')netCleanup();
- if(mode=='menu')h='<div class="box mn"><div class="crest">💎</div><h1 class="ttl">КРИСТАЛЬНЫЕ СТРАЖИ</h1><div style="text-align:center;opacity:.7">Онлайн 1×1 + драфт · 37 героев · три линии</div>'+rankBlock(96)+profStrip()+'<div class="mb"><button class="btn big play" onclick="ov(\'pick\')">▶ Начать игру</button><button class="btn" onclick="ov(\'board\');loadBoard()">🏆 Таблица лидеров</button></div><div class="mb"><button class="btn" onclick="ov(\'ranks\')">Ранги</button><button class="btn" onclick="ov(\'patch\')">📝 Патч 0.1.2</button><button class="btn" onclick="ov(\'hist\')">📜 История матчей</button><button class="btn" onclick="ov(\'inv\')">🎒 Инвентарь</button><button class="btn" onclick="ov(\'loot\')">🎁 Сундуки и скины</button><button class="btn" onclick="ov(\'help\')">Как играть</button><button class="btn" onclick="ov(\'nick\')">✎ Сменить ник</button></div><div style="text-align:center;margin-top:12px;font-size:12px;opacity:.65">Прогресс хранится на этом устройстве, таблица лидеров — на игровом сервере.<br><button class="btn" style="margin-top:8px" onclick="resetProf()">Сбросить прогресс</button></div></div>';
- else if(mode=='patch')h='<div class="box" style="max-width:760px"><h1>📝 Патч 0.1.2 · Сокровищница Стражей</h1><p><b>🎁 Сундуки:</b> весь существовавший набор скинов перемещён в один сундук. Добавлены два редких скина для Лунной охотницы и Механика, а также особая Аркана для Ассасина с уникальными крыльями, короной, эфирными клинками и сиянием.</p><p><b>✦ Экономика:</b> новый магазин жетонов. Победа +30, поражение +18, бонус за длительность до +10 и +6 за онлайн. Сундук 150 жетонов, скины можно приобрести напрямую.</p><p><b>✨ Редкости:</b> Редкий 63%, Эпический 27%, Легендарный 9%, Аркана 1%. Шанс Арканы постепенно повышается после 20 открытий без неё, максимум до 6%. Повторные предметы защищены в пределах редкости.</p><p><b>💾 Прогресс:</b> скины, надетые до патча, и заработанные в Золотом сезоне остаются в инвентаре. Старые монеты однократно переводятся в жетоны 1:1.</p><p><b>⚔️ Сохранено:</b> 37 героев, 41 боевой предмет, улучшенный ИИ, рейтинговая система, сеть и карты.</p><div class="mb"><button class="btn big" onclick="ov(&#39;menu&#39;)">Назад</button></div></div>';
+ if(mode=='menu')h='<div class="box mn"><div class="crest">💎</div><h1 class="ttl">КРИСТАЛЬНЫЕ СТРАЖИ</h1><div style="text-align:center;opacity:.7">Онлайн 1×1 + драфт · 37 героев · три линии</div>'+rankBlock(96)+profStrip()+'<div class="mb"><button class="btn big play" onclick="ov(\'pick\')">▶ Начать игру</button><button class="btn" onclick="ov(\'board\');loadBoard()">🏆 Таблица лидеров</button></div><div class="mb"><button class="btn" onclick="ov(\'ranks\')">Ранги</button><button class="btn" onclick="ov(\'patch\')">📝 Патч 0.1.2 · Сброс скинов</button><button class="btn" onclick="ov(\'hist\')">📜 История матчей</button><button class="btn" onclick="ov(\'inv\')">🎒 Инвентарь</button><button class="btn" onclick="ov(\'loot\')">🎁 Сундуки и скины</button><button class="btn" onclick="ov(\'help\')">Как играть</button><button class="btn" onclick="ov(\'nick\')">✎ Сменить ник</button></div><div style="text-align:center;margin-top:12px;font-size:12px;opacity:.65">Прогресс хранится на этом устройстве, таблица лидеров — на игровом сервере.<br><button class="btn" style="margin-top:8px" onclick="resetProf()">Сбросить прогресс</button></div></div>';
+ else if(mode=='patch')h='<div class="box" style="max-width:760px"><h1>📝 Патч 0.1.2 · Обнуление скинов</h1><p><b>🎁 Сундуки:</b> весь существовавший набор скинов перемещён в один сундук. Добавлены два редких скина для Лунной охотницы и Механика, а также особая Аркана для Ассасина с уникальными крыльями, короной, эфирными клинками и сиянием.</p><p><b>✦ Экономика:</b> новый магазин жетонов. Победа +30, поражение +18, бонус за длительность до +10 и +6 за онлайн. Сундук 150 жетонов, скины можно приобрести напрямую.</p><p><b>✨ Редкости:</b> Редкий 63%, Эпический 27%, Легендарный 9%, Аркана 1%. Шанс Арканы постепенно повышается после 20 открытий без неё, максимум до 6%. Повторные предметы защищены в пределах редкости.</p><p><b>💾 Новый старт:</b> при первом входе после обновления удаляются все открытые и надетые скины у каждого игрока. Повторно старые награды не начисляются. Скины теперь можно получить только из сундуков. MMR, жетоны, медали и история матчей сохраняются.</p><p><b>⚔️ Сохранено:</b> 37 героев, 41 боевой предмет, улучшенный ИИ, рейтинговая система, сеть и карты.</p><div class="mb"><button class="btn big" onclick="ov(&#39;menu&#39;)">Назад</button></div></div>';
  else if(mode=='nick')h='<div class="box" style="max-width:460px;text-align:center"><h1>'+(PROF.nick?'Смена ника':'Регистрация')+'</h1><p>'+(PROF.nick?'Введите новый ник':'Придумайте никнейм — он будет виден в таблице лидеров')+'</p><input id="nk" maxlength="16" placeholder="Никнейм (2–16 символов)" value="'+esc(PROF.nick||'')+'" onkeydown="if(event.key==\'Enter\')saveNick()"><div id="nkmsg" class="note" style="display:none"></div><div class="mb"><button class="btn big" onclick="saveNick()">Сохранить</button>'+(PROF.nick?'<button class="btn" onclick="ov(\'menu\')">Отмена</button>':'')+'</div><small style="opacity:.65">Буквы, цифры, пробел, _ и -. В таблице ник уникален.</small></div>';
  else if(mode=='loot')h=lootHTML();
  else if(mode=='lootResult')h=lootResultHTML();
